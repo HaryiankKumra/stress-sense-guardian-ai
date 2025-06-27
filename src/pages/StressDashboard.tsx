@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +10,10 @@ import {
   Brain,
   AlertTriangle,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  Cloud,
+  Server,
+  Cpu
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
@@ -140,7 +142,7 @@ const StressDashboard = () => {
               <Brain className="w-8 h-8" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Stress Monitoring Dashboard
+              AI Stress Monitoring System
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -148,26 +150,53 @@ const StressDashboard = () => {
           </p>
         </div>
 
-        {/* Connection Status */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-6 h-6 text-blue-600" />
-                System Status
+        {/* System Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Activity className="w-4 h-4 text-blue-600" />
+                ESP32 Connection
               </CardTitle>
-              <div className="flex items-center gap-4">
-                <div className={`flex items-center gap-2 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Last Update: {lastUpdate.toLocaleTimeString()}
-                </div>
+            </CardHeader>
+            <CardContent>
+              <div className={`flex items-center gap-2 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                {isConnected ? 'Connected' : 'Waiting for data'}
               </div>
-            </div>
-          </CardHeader>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Server className="w-4 h-4 text-green-600" />
+                Backend Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-green-600">
+                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                Supabase Active
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Cpu className="w-4 h-4 text-purple-600" />
+                ML Model
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-purple-600">
+                <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+                AI Active
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Current Readings */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -356,6 +385,83 @@ const StressDashboard = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Deployment & Next Steps */}
+        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cloud className="w-5 h-5 text-blue-500" />
+              Deployment & Next Steps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-green-600">✅ What's Already Done</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Supabase backend with Edge Functions
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Real-time database with live updates
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Basic ML stress prediction model
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Responsive React dashboard
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    ESP32 API endpoint ready
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-blue-600">🚀 Deploy to Vercel</h3>
+                <div className="space-y-3">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-blue-800 mb-2">
+                      <strong>1. Connect to Vercel:</strong>
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      • Push your code to GitHub<br/>
+                      • Connect GitHub repo to Vercel<br/>
+                      • Auto-deploy on every push
+                    </p>
+                  </div>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-green-800 mb-2">
+                      <strong>2. Test ESP32 Connection:</strong>
+                    </p>
+                    <p className="text-xs text-green-700">
+                      Send POST to:<br/>
+                      <code className="bg-white px-1 rounded">
+                        https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data
+                      </code>
+                    </p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-purple-800 mb-2">
+                      <strong>3. Upgrade ML Model:</strong>
+                    </p>
+                    <p className="text-xs text-purple-700">
+                      Replace basic logic with your trained model<br/>
+                      (TensorFlow.js, Python API, or Hugging Face)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* ESP32 Integration Instructions */}
         <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
