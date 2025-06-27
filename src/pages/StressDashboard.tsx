@@ -240,20 +240,26 @@ const StressDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-                    <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="heartRate" 
-                      stroke="#ef4444" 
-                      strokeWidth={2}
-                      dot={{ fill: '#ef4444', strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                      <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="heartRate" 
+                        stroke="#ef4444" 
+                        strokeWidth={2}
+                        dot={{ fill: '#ef4444', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Waiting for sensor data...
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -267,20 +273,26 @@ const StressDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-                    <YAxis domain={['dataMin - 1', 'dataMax + 1']} />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="temperature" 
-                      stroke="#f97316" 
-                      strokeWidth={2}
-                      dot={{ fill: '#f97316', strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                      <YAxis domain={['dataMin - 1', 'dataMax + 1']} />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="temperature" 
+                        stroke="#f97316" 
+                        strokeWidth={2}
+                        dot={{ fill: '#f97316', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Waiting for sensor data...
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -296,36 +308,41 @@ const StressDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="heartRate" 
-                    stroke="#ef4444" 
-                    strokeWidth={2}
-                    name="Heart Rate (bpm)"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="temperature" 
-                    stroke="#f97316" 
-                    strokeWidth={2}
-                    name="Temperature (°C)"
-                    yAxisId="right"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="gsr" 
-                    stroke="#eab308" 
-                    strokeWidth={2}
-                    name="GSR (µS)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="heartRate" 
+                      stroke="#ef4444" 
+                      strokeWidth={2}
+                      name="Heart Rate (bpm)"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="temperature" 
+                      stroke="#f97316" 
+                      strokeWidth={2}
+                      name="Temperature (°C)"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="gsr" 
+                      stroke="#eab308" 
+                      strokeWidth={2}
+                      name="GSR (µS)"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Waiting for sensor data...
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -343,26 +360,78 @@ const StressDashboard = () => {
         {/* ESP32 Integration Instructions */}
         <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>ESP32 Integration</CardTitle>
+            <CardTitle>ESP32 Integration Setup</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-gray-600">
-                Configure your ESP32 to send POST requests to the following endpoint:
-              </p>
-              <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm">
-                POST https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data
+              <div>
+                <h3 className="font-semibold text-lg mb-2">1. Hardware Setup</h3>
+                <p className="text-gray-600 mb-2">Connect your sensors to ESP32:</p>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                  <li><strong>Heart Rate Sensor:</strong> Connect to analog pin A0</li>
+                  <li><strong>Temperature Sensor (DS18B20):</strong> Connect to digital pin D2</li>
+                  <li><strong>GSR Sensor:</strong> Connect to analog pin A1</li>
+                </ul>
               </div>
-              <p className="text-gray-600">
-                JSON payload format:
-              </p>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <pre className="text-sm">{`{
+              
+              <div>
+                <h3 className="font-semibold text-lg mb-2">2. WiFi Configuration</h3>
+                <p className="text-gray-600">Configure your ESP32 to connect to WiFi and send POST requests to:</p>
+                <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm mt-2">
+                  POST https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">3. JSON Payload Format</h3>
+                <p className="text-gray-600">Send data in this format every 2-5 seconds:</p>
+                <div className="bg-gray-100 p-4 rounded-lg mt-2">
+                  <pre className="text-sm">{`{
   "heart_rate": 75,
   "temperature": 36.5,
   "gsr_value": 0.123456,
   "timestamp": "2024-01-01T12:00:00Z"
 }`}</pre>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">4. Sample ESP32 Code Structure</h3>
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <pre className="text-sm">{`#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+const char* serverURL = "https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data";
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  // Initialize sensors
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Read sensor values
+    int heartRate = readHeartRate();
+    float temperature = readTemperature();
+    float gsrValue = readGSR();
+    
+    // Send data to server
+    sendSensorData(heartRate, temperature, gsrValue);
+  }
+  delay(3000); // Send every 3 seconds
+}`}</pre>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-blue-800 text-sm">
+                  <strong>💡 Pro Tip:</strong> The dashboard will automatically update in real-time when it receives data from your ESP32. 
+                  No additional configuration needed on the web side!
+                </p>
               </div>
             </div>
           </CardContent>
