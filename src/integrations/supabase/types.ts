@@ -36,6 +36,65 @@ export type Database = {
         }
         Relationships: []
       }
+      sensor_data: {
+        Row: {
+          created_at: string
+          gsr_value: number | null
+          heart_rate: number
+          id: string
+          temperature: number
+          timestamp: string
+        }
+        Insert: {
+          created_at?: string
+          gsr_value?: number | null
+          heart_rate: number
+          id?: string
+          temperature: number
+          timestamp?: string
+        }
+        Update: {
+          created_at?: string
+          gsr_value?: number | null
+          heart_rate?: number
+          id?: string
+          temperature?: number
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      stress_predictions: {
+        Row: {
+          confidence: number | null
+          id: string
+          prediction_timestamp: string
+          sensor_data_id: string | null
+          stress_level: string
+        }
+        Insert: {
+          confidence?: number | null
+          id?: string
+          prediction_timestamp?: string
+          sensor_data_id?: string | null
+          stress_level: string
+        }
+        Update: {
+          confidence?: number | null
+          id?: string
+          prediction_timestamp?: string
+          sensor_data_id?: string | null
+          stress_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stress_predictions_sensor_data_id_fkey"
+            columns: ["sensor_data_id"]
+            isOneToOne: false
+            referencedRelation: "sensor_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       todos: {
         Row: {
           completed: boolean | null
