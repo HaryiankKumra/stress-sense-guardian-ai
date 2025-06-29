@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { 
   Activity, 
   Heart, 
@@ -13,10 +14,22 @@ import {
   TrendingUp,
   Cloud,
   Server,
-  Cpu
+  Cpu,
+  Camera,
+  RotateCcw,
+  MessageCircle,
+  Wifi,
+  WifiOff,
+  Play,
+  Pause
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
+import CameraModule from "@/components/CameraModule";
+import StressChatbot from "@/components/StressChatbot";
+import MLModelStatus from "@/components/MLModelStatus";
+import ESP32StatusCard from "@/components/ESP32StatusCard";
+import SystemFlowChart from "@/components/SystemFlowChart";
 
 interface SensorData {
   id: string;
@@ -36,10 +49,20 @@ const StressDashboard = () => {
   const [currentStressLevel, setCurrentStressLevel] = useState<string>('low');
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [esp32Status, setEsp32Status] = useState({
+    connected: false,
+    deviceId: 'ESP32_DEMO_001',
+    lastSeen: null as Date | null,
+    sensorsActive: 3,
+    i2cEnabled: true
+  });
 
   // Fetch initial data
   useEffect(() => {
     fetchLatestData();
+    checkESP32Status();
   }, []);
 
   // Set up real-time subscription
@@ -58,6 +81,7 @@ const StressDashboard = () => {
           fetchLatestData();
           setIsConnected(true);
           setLastUpdate(new Date());
+          updateESP32Status(true);
         }
       )
       .subscribe();
@@ -65,6 +89,15 @@ const StressDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  // Check ESP32 status periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkESP32Status();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchLatestData = async () => {
@@ -102,6 +135,47 @@ const StressDashboard = () => {
       console.error('Error:', error);
       setIsConnected(false);
     }
+  };
+
+  const checkESP32Status = async () => {
+    try {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const { data, error } = await supabase
+        .from('sensor_data')
+        .select('timestamp')
+        .gte('timestamp', fiveMinutesAgo.toISOString())
+        .order('timestamp', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking ESP32 status:', error);
+        return;
+      }
+
+      const isActive = data && data.length > 0;
+      setEsp32Status(prev => ({
+        ...prev,
+        connected: isActive,
+        lastSeen: isActive ? new Date(data[0].timestamp) : prev.lastSeen
+      }));
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const updateESP32Status = (connected: boolean) => {
+    setEsp32Status(prev => ({
+      ...prev,
+      connected,
+      lastSeen: connected ? new Date() : prev.lastSeen
+    }));
+  };
+
+  const resetEvaluation = () => {
+    // Reset current display data but keep historical data
+    setCurrentStressLevel('low');
+    setLastUpdate(new Date());
+    console.log('Evaluation reset - starting fresh analysis');
   };
 
   const getStressColor = (level: string) => {
@@ -146,23 +220,68 @@ const StressDashboard = () => {
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Real-time biometric monitoring with AI-powered stress detection
+            Real-time biometric monitoring with AI-powered stress detection & facial emotion analysis
           </p>
         </div>
+
+        {/* Control Panel */}
+        <div className="flex justify-center gap-4 mb-6">
+          <Button
+            onClick={() => setIsCameraActive(!isCameraActive)}
+            className={`flex items-center gap-2 ${isCameraActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+          >
+            <Camera className="w-4 h-4" />
+            {isCameraActive ? 'Stop Camera' : 'Start Camera'}
+          </Button>
+          <Button
+            onClick={resetEvaluation}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reset Evaluation
+          </Button>
+          <Button
+            onClick={() => setShowChatbot(!showChatbot)}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+          >
+            <MessageCircle className="w-4 h-4" />
+            AI Chatbot
+          </Button>
+        </div>
+
+        {/* ESP32 Status */}
+        <ESP32StatusCard status={esp32Status} />
+
+        {/* ML Models Status */}
+        <MLModelStatus />
+
+        {/* Camera Module */}
+        {isCameraActive && (
+          <CameraModule 
+            isActive={isCameraActive}
+            onEmotionDetected={(emotion, confidence) => {
+              console.log('Emotion detected:', emotion, confidence);
+            }}
+          />
+        )}
 
         {/* System Status */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
-                <Activity className="w-4 h-4 text-blue-600" />
+                {esp32Status.connected ? <Wifi className="w-4 h-4 text-green-600" /> : <WifiOff className="w-4 h-4 text-red-600" />}
                 ESP32 Connection
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`flex items-center gap-2 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                {isConnected ? 'Connected' : 'Waiting for data'}
+              <div className={`flex items-center gap-2 ${esp32Status.connected ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`w-3 h-3 rounded-full ${esp32Status.connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                {esp32Status.connected ? 'Connected' : 'Disconnected'}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Device: {esp32Status.deviceId}
               </div>
             </CardContent>
           </Card>
@@ -179,6 +298,9 @@ const StressDashboard = () => {
                 <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                 Supabase Active
               </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Sensors: {esp32Status.sensorsActive} Active | I2C: {esp32Status.i2cEnabled ? 'Enabled' : 'Disabled'}
+              </div>
             </CardContent>
           </Card>
 
@@ -186,13 +308,16 @@ const StressDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Cpu className="w-4 h-4 text-purple-600" />
-                ML Model
+                ML Models
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-purple-600">
                 <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
-                AI Active
+                5 Models Active
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                GSR | HR | Temp | Facial | Combined
               </div>
             </CardContent>
           </Card>
@@ -319,7 +444,7 @@ const StressDashboard = () => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-500">
-                    Waiting for sensor data...
+                    Waiting for data...
                   </div>
                 )}
               </div>
@@ -376,6 +501,9 @@ const StressDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* System Flow Chart */}
+        <SystemFlowChart />
+
         {/* Stress Alert */}
         {currentStressLevel === 'high' && (
           <Alert className="border-red-200 bg-red-50">
@@ -386,162 +514,8 @@ const StressDashboard = () => {
           </Alert>
         )}
 
-        {/* Deployment & Next Steps */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Cloud className="w-5 h-5 text-blue-500" />
-              Deployment & Next Steps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-green-600">✅ What's Already Done</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Supabase backend with Edge Functions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Real-time database with live updates
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Basic ML stress prediction model
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Responsive React dashboard
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    ESP32 API endpoint ready
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-blue-600">🚀 Deploy to Vercel</h3>
-                <div className="space-y-3">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-blue-800 mb-2">
-                      <strong>1. Connect to Vercel:</strong>
-                    </p>
-                    <p className="text-xs text-blue-700">
-                      • Push your code to GitHub<br/>
-                      • Connect GitHub repo to Vercel<br/>
-                      • Auto-deploy on every push
-                    </p>
-                  </div>
-                  
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-sm text-green-800 mb-2">
-                      <strong>2. Test ESP32 Connection:</strong>
-                    </p>
-                    <p className="text-xs text-green-700">
-                      Send POST to:<br/>
-                      <code className="bg-white px-1 rounded">
-                        https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data
-                      </code>
-                    </p>
-                  </div>
-
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <p className="text-sm text-purple-800 mb-2">
-                      <strong>3. Upgrade ML Model:</strong>
-                    </p>
-                    <p className="text-xs text-purple-700">
-                      Replace basic logic with your trained model<br/>
-                      (TensorFlow.js, Python API, or Hugging Face)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ESP32 Integration Instructions */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>ESP32 Integration Setup</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">1. Hardware Setup</h3>
-                <p className="text-gray-600 mb-2">Connect your sensors to ESP32:</p>
-                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                  <li><strong>Heart Rate Sensor:</strong> Connect to analog pin A0</li>
-                  <li><strong>Temperature Sensor (DS18B20):</strong> Connect to digital pin D2</li>
-                  <li><strong>GSR Sensor:</strong> Connect to analog pin A1</li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-lg mb-2">2. WiFi Configuration</h3>
-                <p className="text-gray-600">Configure your ESP32 to connect to WiFi and send POST requests to:</p>
-                <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm mt-2">
-                  POST https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-lg mb-2">3. JSON Payload Format</h3>
-                <p className="text-gray-600">Send data in this format every 2-5 seconds:</p>
-                <div className="bg-gray-100 p-4 rounded-lg mt-2">
-                  <pre className="text-sm">{`{
-  "heart_rate": 75,
-  "temperature": 36.5,
-  "gsr_value": 0.123456,
-  "timestamp": "2024-01-01T12:00:00Z"
-}`}</pre>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-lg mb-2">4. Sample ESP32 Code Structure</h3>
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <pre className="text-sm">{`#include <WiFi.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
-
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
-const char* serverURL = "https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/receive-sensor-data";
-
-void setup() {
-  Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  // Initialize sensors
-}
-
-void loop() {
-  if (WiFi.status() == WL_CONNECTED) {
-    // Read sensor values
-    int heartRate = readHeartRate();
-    float temperature = readTemperature();
-    float gsrValue = readGSR();
-    
-    // Send data to server
-    sendSensorData(heartRate, temperature, gsrValue);
-  }
-  delay(3000); // Send every 3 seconds
-}`}</pre>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-blue-800 text-sm">
-                  <strong>💡 Pro Tip:</strong> The dashboard will automatically update in real-time when it receives data from your ESP32. 
-                  No additional configuration needed on the web side!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Chatbot */}
+        {showChatbot && <StressChatbot />}
       </div>
     </div>
   );

@@ -9,6 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      biometric_data_enhanced: {
+        Row: {
+          combined_prediction: number | null
+          confidence_score: number | null
+          created_at: string | null
+          device_id: string | null
+          facial_expression: string | null
+          facial_prediction: number | null
+          gsr_prediction: number | null
+          gsr_value: number
+          heart_rate: number
+          hr_prediction: number | null
+          id: number
+          session_id: string | null
+          stress_level: string
+          stress_score: number | null
+          temp_prediction: number | null
+          temperature: number
+          timestamp: string | null
+        }
+        Insert: {
+          combined_prediction?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          device_id?: string | null
+          facial_expression?: string | null
+          facial_prediction?: number | null
+          gsr_prediction?: number | null
+          gsr_value: number
+          heart_rate: number
+          hr_prediction?: number | null
+          id?: number
+          session_id?: string | null
+          stress_level?: string
+          stress_score?: number | null
+          temp_prediction?: number | null
+          temperature: number
+          timestamp?: string | null
+        }
+        Update: {
+          combined_prediction?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          device_id?: string | null
+          facial_expression?: string | null
+          facial_prediction?: number | null
+          gsr_prediction?: number | null
+          gsr_value?: number
+          heart_rate?: number
+          hr_prediction?: number | null
+          id?: number
+          session_id?: string | null
+          stress_level?: string
+          stress_score?: number | null
+          temp_prediction?: number | null
+          temperature?: number
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
+      ml_models: {
+        Row: {
+          accuracy: number | null
+          created_at: string | null
+          id: number
+          is_active: boolean | null
+          model_name: string
+          model_type: string
+          model_version: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          model_name: string
+          model_type: string
+          model_version: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          model_name?: string
+          model_type?: string
+          model_version?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
