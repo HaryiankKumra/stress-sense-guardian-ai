@@ -2,7 +2,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Eye, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Camera, Eye, AlertCircle, Play, Pause } from "lucide-react";
 
 interface CameraModuleProps {
   isActive: boolean;
@@ -17,6 +18,7 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
   const [confidence, setConfidence] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
+  const [localCameraActive, setLocalCameraActive] = useState(false);
 
   useEffect(() => {
     if (isActive) {
@@ -44,6 +46,7 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
         videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
         setError('');
+        setLocalCameraActive(true);
         
         // Start emotion detection
         setTimeout(() => {
@@ -65,6 +68,15 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
       videoRef.current.srcObject = null;
     }
     setIsProcessing(false);
+    setLocalCameraActive(false);
+  };
+
+  const toggleCamera = () => {
+    if (localCameraActive) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
   };
 
   const startEmotionDetection = () => {
@@ -73,7 +85,7 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
     setIsProcessing(true);
     
     const detectEmotion = () => {
-      if (!isActive || !videoRef.current || !canvasRef.current) return;
+      if (!isActive || !videoRef.current || !canvasRef.current || !localCameraActive) return;
 
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
@@ -95,7 +107,9 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
       }
 
       // Continue detection
-      setTimeout(detectEmotion, 1000); // Analyze every second
+      if (localCameraActive) {
+        setTimeout(detectEmotion, 1000); // Analyze every second
+      }
     };
 
     detectEmotion();
@@ -103,22 +117,22 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
 
   const getEmotionColor = (emotion: string) => {
     const colors = {
-      happy: 'bg-green-100 text-green-800',
-      sad: 'bg-blue-100 text-blue-800',
-      angry: 'bg-red-100 text-red-800',
-      surprised: 'bg-yellow-100 text-yellow-800',
-      fearful: 'bg-purple-100 text-purple-800',
-      disgusted: 'bg-orange-100 text-orange-800',
-      neutral: 'bg-gray-100 text-gray-800'
+      happy: 'bg-green-500/20 text-green-400 border-green-500/30',
+      sad: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      angry: 'bg-red-500/20 text-red-400 border-red-500/30',
+      surprised: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+      fearful: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+      disgusted: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+      neutral: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
     };
-    return colors[emotion as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[emotion as keyof typeof colors] || 'bg-gray-500/20 text-gray-400 border-gray-500/30';
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="w-5 h-5 text-blue-500" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Camera className="w-5 h-5 text-blue-400" />
           Facial Emotion Detection
         </CardTitle>
       </CardHeader>
@@ -128,7 +142,7 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
           <div className="space-y-4">
             <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
               {error ? (
-                <div className="flex items-center justify-center h-full text-red-500">
+                <div className="flex items-center justify-center h-full text-red-400">
                   <div className="text-center">
                     <AlertCircle className="w-12 h-12 mx-auto mb-2" />
                     <p>{error}</p>
@@ -149,15 +163,28 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
                   />
                   
                   {/* Live indicator */}
-                  <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    LIVE
+                  {localCameraActive && (
+                    <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      LIVE
+                    </div>
+                  )}
+
+                  {/* Camera Control Button - Adjacent to video */}
+                  <div className="absolute top-4 right-4">
+                    <Button
+                      onClick={toggleCamera}
+                      className={`${localCameraActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                      size="sm"
+                    >
+                      {localCameraActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
                   </div>
 
                   {/* Current emotion overlay */}
-                  {isProcessing && (
+                  {isProcessing && localCameraActive && (
                     <div className="absolute bottom-4 left-4 right-4">
-                      <Badge className={`${getEmotionColor(currentEmotion)} text-lg py-2 px-4 w-full justify-center`}>
+                      <Badge className={`${getEmotionColor(currentEmotion)} text-lg py-2 px-4 w-full justify-center border`}>
                         {currentEmotion.toUpperCase()} ({(confidence * 100).toFixed(1)}%)
                       </Badge>
                     </div>
@@ -170,39 +197,39 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
           {/* Emotion Analysis */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Eye className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold text-gray-800">
-                  {isProcessing ? 'Active' : 'Inactive'}
+              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                <Eye className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+                <div className="text-2xl font-bold text-white">
+                  {isProcessing && localCameraActive ? 'Active' : 'Inactive'}
                 </div>
-                <div className="text-sm text-gray-600">Detection Status</div>
+                <div className="text-sm text-slate-400">Detection Status</div>
               </div>
               
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-800">
+              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                <div className="text-2xl font-bold text-white">
                   {(confidence * 100).toFixed(1)}%
                 </div>
-                <div className="text-sm text-gray-600">Confidence</div>
+                <div className="text-sm text-slate-400">Confidence</div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Current Analysis</h3>
+              <h3 className="font-semibold text-lg text-white">Current Analysis</h3>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Dominant Emotion:</span>
-                  <Badge className={getEmotionColor(currentEmotion)}>
+                  <span className="text-slate-300">Dominant Emotion:</span>
+                  <Badge className={`${getEmotionColor(currentEmotion)} border`}>
                     {currentEmotion}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Stress Indicator:</span>
+                  <span className="text-slate-300">Stress Indicator:</span>
                   <Badge className={
                     currentEmotion === 'angry' || currentEmotion === 'fearful' 
-                      ? 'bg-red-100 text-red-800' 
+                      ? 'bg-red-500/20 text-red-400 border-red-500/30' 
                       : currentEmotion === 'sad' 
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                      : 'bg-green-500/20 text-green-400 border-green-500/30'
                   }>
                     {currentEmotion === 'angry' || currentEmotion === 'fearful' 
                       ? 'High' 
@@ -214,10 +241,10 @@ const CameraModule: React.FC<CameraModuleProps> = ({ isActive, onEmotionDetected
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-blue-800 text-sm">
+            <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/30">
+              <p className="text-blue-400 text-sm">
                 <strong>💡 TensorFlow.js Integration:</strong> 
-                Place your facial emotion detection model files in <code>/public/models/facial/</code> 
+                Place your facial emotion detection model files in <code className="text-purple-400">/public/models/facial/</code> 
                 and update the model loading logic in this component.
               </p>
             </div>

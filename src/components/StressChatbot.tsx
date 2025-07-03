@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Bot, User, Heart, Brain } from "lucide-react";
+import { MessageCircle, Send, Bot, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Message {
   id: string;
@@ -19,13 +21,14 @@ const StressChatbot: React.FC = () => {
     {
       id: '1',
       type: 'bot',
-      content: "Hi! I'm your AI stress management assistant. I can help you with relaxation techniques, breathing exercises, and personalized stress relief strategies. How are you feeling right now?",
+      content: "Hi! I'm your AI stress management assistant. I'm here to help you with relaxation techniques, breathing exercises, and personalized stress relief strategies. How are you feeling right now?",
       timestamp: new Date(),
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,7 +38,63 @@ const StressChatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const getStressRecommendations = (userMessage: string) => {
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: inputValue,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsTyping(true);
+
+    try {
+      // Call GPT via Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('stress-chatbot', {
+        body: { 
+          message: `Please answer stress management related questions as this is only a stress management app. If user asks any other thing, say "I don't know" and stick to stress management topics only! User message: ${inputValue}` 
+        }
+      });
+
+      if (error) throw error;
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: data.response || "I'm here to help with stress management. Could you tell me more about what's concerning you?",
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Chatbot error:', error);
+      // Fallback to local responses
+      const recommendation = getLocalStressRecommendations(inputValue);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: recommendation.response,
+        timestamp: new Date(),
+        stressLevel: recommendation.stressLevel,
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+      
+      toast({
+        title: "Using Offline Mode",
+        description: "ChatGPT unavailable, using local responses",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const getLocalStressRecommendations = (userMessage: string) => {
     const lowerMessage = userMessage.toLowerCase();
     
     if (lowerMessage.includes('stressed') || lowerMessage.includes('anxious') || lowerMessage.includes('worried')) {
@@ -52,21 +111,6 @@ const StressChatbot: React.FC = () => {
       };
     }
     
-    if (lowerMessage.includes('tired') || lowerMessage.includes('exhausted') || lowerMessage.includes('sleep')) {
-      return {
-        response: "Fatigue can definitely impact stress levels. Here's what can help:\n\n😴 **Sleep Hygiene**: Aim for 7-9 hours, keep a consistent schedule\n\n🌅 **Power Nap**: 10-20 minutes max if needed\n\n💧 **Stay Hydrated**: Dehydration increases stress hormones\n\n🥗 **Balanced Nutrition**: Avoid caffeine late in the day\n\nYour body needs rest to manage stress effectively. How's your sleep pattern lately?",
-        stressLevel: 'medium'
-      };
-    }
-    
-    if (lowerMessage.includes('work') || lowerMessage.includes('job') || lowerMessage.includes('boss')) {
-      return {
-        response: "Work-related stress is very common. Let's tackle this:\n\n⏰ **Time Management**: Use the Pomodoro Technique (25 min work, 5 min break)\n\n🎯 **Prioritize Tasks**: Focus on important and urgent items first\n\n🗣️ **Communication**: Don't hesitate to ask for help or clarification\n\n🚪 **Boundaries**: Leave work at work when possible\n\nRemember, your wellbeing comes first. What specific work situation is bothering you?",
-        stressLevel: 'medium'
-      };
-    }
-    
-    // Default responses
     const defaultResponses = [
       "I'm here to help you manage stress. Can you tell me more about what's on your mind?",
       "Thank you for sharing. Based on your biometric data, I can provide personalized recommendations. What would be most helpful right now?",
@@ -79,36 +123,6 @@ const StressChatbot: React.FC = () => {
     };
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsTyping(true);
-
-    // Simulate AI processing time
-    setTimeout(() => {
-      const recommendation = getStressRecommendations(inputValue);
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: recommendation.response,
-        timestamp: new Date(),
-        stressLevel: recommendation.stressLevel,
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1500);
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSendMessage();
@@ -117,26 +131,26 @@ const StressChatbot: React.FC = () => {
 
   const getStressLevelColor = (level?: string) => {
     switch (level) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-blue-100 text-blue-800';
+      case 'low': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'high': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
     }
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-purple-500" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <MessageCircle className="w-5 h-5 text-purple-400" />
           AI Stress Management Chatbot
-          <Badge className="bg-purple-100 text-purple-800">✅ Active</Badge>
+          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">✅ Active</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col h-96">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -146,8 +160,8 @@ const StressChatbot: React.FC = () => {
               >
                 <div className={`p-2 rounded-full ${
                   message.type === 'user' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-purple-500 text-white'
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-purple-600 text-white'
                 }`}>
                   {message.type === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                 </div>
@@ -157,17 +171,17 @@ const StressChatbot: React.FC = () => {
                 }`}>
                   <div className={`p-3 rounded-lg ${
                     message.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-700 border border-slate-600 text-white'
                   }`}>
                     <p className="whitespace-pre-line">{message.content}</p>
                     {message.stressLevel && (
-                      <Badge className={`mt-2 ${getStressLevelColor(message.stressLevel)}`}>
+                      <Badge className={`mt-2 ${getStressLevelColor(message.stressLevel)} border`}>
                         Stress Level: {message.stressLevel}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-slate-400 mt-1">
                     {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
@@ -176,14 +190,14 @@ const StressChatbot: React.FC = () => {
             
             {isTyping && (
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-full bg-purple-500 text-white">
+                <div className="p-2 rounded-full bg-purple-600 text-white">
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                <div className="bg-slate-700 border border-slate-600 p-3 rounded-lg">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -198,7 +212,7 @@ const StressChatbot: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Tell me how you're feeling or ask for stress relief tips..."
-              className="flex-1"
+              className="flex-1 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
             />
             <Button onClick={handleSendMessage} className="bg-purple-600 hover:bg-purple-700">
               <Send className="w-4 h-4" />
@@ -211,7 +225,7 @@ const StressChatbot: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setInputValue("I'm feeling stressed")}
-              className="text-xs"
+              className="text-xs border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               😰 I'm stressed
             </Button>
@@ -219,7 +233,7 @@ const StressChatbot: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setInputValue("I need breathing exercises")}
-              className="text-xs"
+              className="text-xs border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               🫁 Breathing help
             </Button>
@@ -227,7 +241,7 @@ const StressChatbot: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setInputValue("I can't sleep")}
-              className="text-xs"
+              className="text-xs border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               😴 Sleep issues
             </Button>
@@ -235,7 +249,7 @@ const StressChatbot: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setInputValue("Work is overwhelming")}
-              className="text-xs"
+              className="text-xs border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               💼 Work stress
             </Button>
