@@ -56,7 +56,7 @@ const StressChatbot: React.FC = () => {
       // Call GPT via Supabase Edge Function
       const { data, error } = await supabase.functions.invoke('stress-chatbot', {
         body: { 
-          message: `Please answer stress management related questions as this is only a stress management app. If user asks any other thing, say "I don't know" and stick to stress management topics only! User message: ${inputValue}` 
+          message: inputValue
         }
       });
 

@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const openAIApiKey = Deno.env.get('GPT_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,6 +25,9 @@ serve(async (req) => {
       });
     }
 
+    // Add the required prompt prefix
+    const promptWithPrefix = `Please answer stress management related questions as this is only a stress management app. If user asks any other thing, say "I don't know" and stick to stress management topics only! User message: ${message}`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -38,7 +41,7 @@ serve(async (req) => {
             role: 'system', 
             content: 'You are a helpful AI assistant specialized in stress management and mental wellness. Only answer questions related to stress relief, relaxation techniques, breathing exercises, mental health support, and wellness strategies. If asked about anything else, politely redirect the conversation back to stress management topics. Keep responses supportive, empathetic, and practical.' 
           },
-          { role: 'user', content: message }
+          { role: 'user', content: promptWithPrefix }
         ],
         max_tokens: 500,
         temperature: 0.7,

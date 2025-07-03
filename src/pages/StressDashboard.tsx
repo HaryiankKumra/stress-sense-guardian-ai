@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -144,10 +143,23 @@ const StressDashboard = () => {
   const processWithMLModel = async (sensorReading: any) => {
     setIsProcessingML(true);
     try {
-      // Prepare data for Hugging Face model
-      const ecgData = Array.from({length: 700}, () => Math.random() * 100 + sensorReading.heart_rate).join(',');
-      const edaData = Array.from({length: 20}, () => Math.random() * 0.5 + (sensorReading.gsr_value || 0.1)).join(',');
-      const tempData = Array.from({length: 20}, () => Math.random() * 2 + sensorReading.temperature).join(',');
+      // Generate synthetic data arrays based on sensor readings
+      const ecgData = Array.from({length: 700}, (_, i) => {
+        const baseValue = sensorReading.heart_rate || 75;
+        return (baseValue + Math.sin(i * 0.1) * 10 + Math.random() * 5).toFixed(2);
+      }).join(',');
+      
+      const edaData = Array.from({length: 20}, (_, i) => {
+        const baseValue = sensorReading.gsr_value || 0.3;
+        return (baseValue + Math.random() * 0.2).toFixed(4);
+      }).join(',');
+      
+      const tempData = Array.from({length: 20}, (_, i) => {
+        const baseValue = sensorReading.temperature || 36.5;
+        return (baseValue + Math.random() * 1).toFixed(2);
+      }).join(',');
+
+      console.log('Sending to ML model:', { ecgData: ecgData.substring(0, 50) + '...', edaData, tempData });
 
       const response = await fetch('https://Haryiank-stress-detector.hf.space/run/predict', {
         method: 'POST',
@@ -159,31 +171,45 @@ const StressDashboard = () => {
         })
       });
 
-      const result = await response.json();
-      const stressResult = result.data[0];
-      
-      // Update stress level based on ML prediction
-      const newStressLevel = stressResult === 'Stress' ? 'high' : 'low';
-      setCurrentStressLevel(newStressLevel);
-      
-      // Store prediction in database
-      await supabase.from('stress_predictions').insert({
-        sensor_data_id: sensorReading.id,
-        stress_level: newStressLevel,
-        confidence: 0.97,
-        prediction_timestamp: new Date().toISOString()
-      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      toast({
-        title: "ML Prediction Complete",
-        description: `Stress Level: ${stressResult} (Accuracy: ${mlAccuracy}%)`,
-      });
+      const result = await response.json();
+      console.log('ML Model Response:', result);
+      
+      if (result && result.data && result.data.length > 0) {
+        const stressResult = result.data[0];
+        
+        // Update stress level based on ML prediction
+        const newStressLevel = stressResult === 'Stress' ? 'high' : 'low';
+        setCurrentStressLevel(newStressLevel);
+        
+        // Store prediction in database
+        const { error: insertError } = await supabase.from('stress_predictions').insert({
+          sensor_data_id: sensorReading.id,
+          stress_level: newStressLevel,
+          confidence: 0.97,
+          prediction_timestamp: new Date().toISOString()
+        });
+
+        if (insertError) {
+          console.error('Error storing prediction:', insertError);
+        }
+
+        toast({
+          title: "ML Prediction Complete",
+          description: `Stress Level: ${stressResult} (Accuracy: ${mlAccuracy}%)`,
+        });
+      } else {
+        throw new Error('Invalid response format from ML model');
+      }
 
     } catch (error) {
       console.error('ML Model Error:', error);
       toast({
         title: "ML Model Error",
-        description: "Failed to process with ML model",
+        description: "Failed to process with ML model: " + error.message,
         variant: "destructive"
       });
     } finally {
@@ -228,7 +254,7 @@ const StressDashboard = () => {
   const resetEvaluation = () => {
     setCurrentStressLevel('low');
     setLastUpdate(new Date());
-    setSensorData([]);
+    // Don't clear sensor data, just reset UI state
     console.log('Evaluation reset - starting fresh analysis');
     toast({
       title: "Evaluation Reset",
@@ -245,16 +271,25 @@ const StressDashboard = () => {
         timestamp: new Date().toISOString()
       };
 
+      console.log('Generating test data:', testData);
+
       const { data, error } = await supabase
         .from('sensor_data')
         .insert(testData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Test data inserted:', data);
 
       // Process with ML model
-      await processWithMLModel(data);
+      if (data) {
+        await processWithMLModel(data);
+      }
       
       toast({
         title: "Test Data Generated",
@@ -264,7 +299,7 @@ const StressDashboard = () => {
       console.error('Error generating test data:', error);
       toast({
         title: "Error",
-        description: "Failed to generate test data",
+        description: "Failed to generate test data: " + error.message,
         variant: "destructive"
       });
     }
