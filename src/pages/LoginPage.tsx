@@ -14,6 +14,7 @@ import { Monitor, Eye, EyeOff, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { TestCredentials } from "@/components/TestCredentials";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
