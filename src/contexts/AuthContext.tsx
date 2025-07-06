@@ -313,13 +313,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const sessionToken = localStorage.getItem("session_token");
       if (sessionToken) {
-        await supabase
-          .from("user_sessions")
-          .delete()
-          .eq("session_token", sessionToken);
+        try {
+          await supabase
+            .from("user_sessions")
+            .delete()
+            .eq("session_token", sessionToken);
+        } catch (error) {
+          console.log(
+            "Supabase logout failed, continuing with local logout:",
+            error,
+          );
+        }
       }
 
       localStorage.removeItem("session_token");
+      localStorage.removeItem("mock_user");
       setUser(null);
       setProfile(null);
     } catch (error) {
