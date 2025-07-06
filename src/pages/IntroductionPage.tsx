@@ -77,19 +77,19 @@ const IntroductionPage = () => {
                 and manage stress in real-time
               </p>
               <div className="flex items-center gap-4">
-                <Link to="/#what-we-do">
+                <a href="#about">
                   <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3">
                     What we do
                   </Button>
-                </Link>
-                <Link to="/#how-it-works">
+                </a>
+                <a href="#technology">
                   <Button
                     variant="outline"
                     className="border-slate-600 text-slate-300 hover:bg-slate-800 px-6 py-3"
                   >
                     How it works
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
           </div>
