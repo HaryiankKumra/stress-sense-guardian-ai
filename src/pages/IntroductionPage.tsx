@@ -186,7 +186,7 @@ const IntroductionPage = () => {
               <div className="absolute inset-4 bg-gradient-to-r from-sky-500/30 to-cyan-300/30 rounded-full animate-pulse delay-75"></div>
               <div className="absolute inset-8 bg-gradient-to-r from-sky-400/40 to-cyan-200/40 rounded-full animate-pulse delay-150"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Heart
+                <Activity
                   className="w-24 h-24 text-sky-600 dark:text-sky-400"
                   style={{
                     animation: "heartbeat 1.5s ease-in-out infinite",
@@ -375,7 +375,7 @@ const IntroductionPage = () => {
               <div className="absolute inset-16 border-4 border-blue-500/30 rounded-full"></div>
               <div className="absolute inset-24 border-4 border-teal-500/30 rounded-full"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Target className="w-16 h-16 text-sky-600 dark:text-sky-400" />
+                <Brain className="w-16 h-16 text-sky-600 dark:text-sky-400" />
               </div>
             </div>
           </div>
