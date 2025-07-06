@@ -149,37 +149,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Hash password (in production, use proper bcrypt)
       const passwordHash = btoa(password); // Simple base64 encoding for demo
 
-      const { data: userData, error } = await supabase
-        .from("auth_users")
-        .select("*")
-        .eq("email", email)
-        .eq("password_hash", passwordHash)
-        .single();
+      // Try Supabase first
+      try {
+        const { data: userData, error } = await supabase
+          .from("auth_users")
+          .select("*")
+          .eq("email", email)
+          .eq("password_hash", passwordHash)
+          .single();
 
-      if (error || !userData) {
-        return { success: false, error: "Invalid credentials" };
+        if (!error && userData) {
+          // Create session
+          const sessionToken = btoa(userData.id + ":" + Date.now());
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+          await supabase.from("user_sessions").insert({
+            user_id: userData.id,
+            session_token: sessionToken,
+            expires_at: expiresAt.toISOString(),
+          });
+
+          localStorage.setItem("session_token", sessionToken);
+
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            full_name: userData.full_name,
+          });
+
+          await fetchUserProfile(userData.id);
+          return { success: true };
+        }
+      } catch (supabaseError) {
+        console.log("Supabase auth failed, trying mock auth:", supabaseError);
       }
 
-      // Create session
-      const sessionToken = btoa(userData.id + ":" + Date.now());
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      // Fallback to mock authentication
+      const mockUser = mockUsers.find(
+        (u) => u.email === email && u.password_hash === passwordHash,
+      );
+      if (mockUser) {
+        const sessionToken = btoa(mockUser.id + ":" + Date.now());
+        localStorage.setItem("session_token", sessionToken);
+        localStorage.setItem("mock_user", JSON.stringify(mockUser));
 
-      await supabase.from("user_sessions").insert({
-        user_id: userData.id,
-        session_token: sessionToken,
-        expires_at: expiresAt.toISOString(),
-      });
+        setUser({
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+        });
 
-      localStorage.setItem("session_token", sessionToken);
+        // Set mock profile
+        const mockProfile = mockProfiles.find((p) => p.user_id === mockUser.id);
+        if (mockProfile) {
+          setProfile(mockProfile);
+        }
 
-      setUser({
-        id: userData.id,
-        email: userData.email,
-        full_name: userData.full_name,
-      });
+        return { success: true };
+      }
 
-      await fetchUserProfile(userData.id);
-      return { success: true };
+      return { success: false, error: "Invalid credentials" };
     } catch (error) {
       return { success: false, error: "Login failed" };
     }
