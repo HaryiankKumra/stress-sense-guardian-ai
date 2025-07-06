@@ -4,12 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowRight,
-  Brain,
   Heart,
   Activity,
   Zap,
   Users,
-  Target,
   ChevronRight,
   Download,
   ExternalLink,
@@ -17,6 +15,8 @@ import {
   Linkedin,
   MapPin,
   Phone,
+  Monitor,
+  Send,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -95,7 +95,7 @@ const IntroductionPage = () => {
       <header className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-sky-600 dark:text-sky-400" />
+            <Monitor className="w-8 h-8 text-sky-600 dark:text-sky-400" />
             <span className="text-2xl font-bold text-slate-900 dark:text-white">
               StressGuard AI
             </span>
@@ -180,18 +180,18 @@ const IntroductionPage = () => {
             </div>
           </div>
           <div className="relative">
-            <div className="w-96 h-96 mx-auto relative">
-              {/* Heartbeat/Pulse Animation */}
-              <div className="absolute inset-0 bg-gradient-to-r from-sky-600/20 to-cyan-400/20 rounded-full animate-pulse"></div>
-              <div className="absolute inset-4 bg-gradient-to-r from-sky-500/30 to-cyan-300/30 rounded-full animate-pulse delay-75"></div>
-              <div className="absolute inset-8 bg-gradient-to-r from-sky-400/40 to-cyan-200/40 rounded-full animate-pulse delay-150"></div>
+            <div className="w-96 h-96 mx-auto relative bg-slate-100/10 dark:bg-slate-800/10 rounded-2xl overflow-hidden">
+              {/* Left-to-Right Pulse Animation */}
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent pulse-line"></div>
+              </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Activity
-                  className="w-24 h-24 text-sky-600 dark:text-sky-400"
-                  style={{
-                    animation: "heartbeat 1.5s ease-in-out infinite",
-                  }}
-                />
+                <div className="text-center">
+                  <Activity className="w-16 h-16 text-sky-600 dark:text-sky-400 mx-auto mb-4" />
+                  <p className="text-sky-600 dark:text-sky-400 font-semibold">
+                    Real-time Monitoring
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -290,7 +290,7 @@ const IntroductionPage = () => {
             <Card className="bg-white/50 dark:bg-slate-800/50 border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
               <CardContent className="p-6">
                 <div className="w-12 h-12 bg-cyan-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <Brain className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                  <Activity className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
                   Facial Expression Analysis for Stress Recognition
@@ -366,19 +366,6 @@ const IntroductionPage = () => {
               </h2>
             </div>
           </div>
-
-          {/* Detection Visual */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="w-96 h-96 mx-auto relative">
-              <div className="absolute inset-0 border-4 border-sky-500/30 rounded-full"></div>
-              <div className="absolute inset-8 border-4 border-cyan-500/30 rounded-full"></div>
-              <div className="absolute inset-16 border-4 border-blue-500/30 rounded-full"></div>
-              <div className="absolute inset-24 border-4 border-teal-500/30 rounded-full"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Brain className="w-16 h-16 text-sky-600 dark:text-sky-400" />
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -410,7 +397,7 @@ const IntroductionPage = () => {
             <Card className="bg-white/50 dark:bg-slate-800/50 border-sky-200 dark:border-slate-700 hover:border-cyan-500/50 transition-all duration-300">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-cyan-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Brain className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+                  <Activity className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   AI-Powered Detection
@@ -658,17 +645,76 @@ const IntroductionPage = () => {
               </div>
             </div>
 
-            <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3428.6904492850937!2d76.36088!3d30.66832!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390fe9a8bb5c7fed%3A0x69da2b7a6d8b9d50!2sThapar%20Institute%20of%20Engineering%20and%20Technology!5e0!3m2!1sen!2sin!4v1635789123456!5m2!1sen!2sin"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Thapar University Location"
-              ></iframe>
+            <div className="space-y-6">
+              <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3434.0842398571437!2d76.36230837432056!3d30.66651197464618!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390fefb8ab4e7be7%3A0x65b31c5f7dc3f2b8!2sThapar%20Institute%20of%20Engineering%20and%20Technology!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Thapar University Location"
+                ></iframe>
+              </div>
+
+              {/* Contact Form */}
+              <Card className="bg-white/50 dark:bg-slate-800/50 border-sky-200 dark:border-slate-700">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                    Send us a Message
+                  </h3>
+                  <form className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          className="w-full px-3 py-2 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          placeholder="Your email"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Subject
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        placeholder="Message subject"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Message
+                      </label>
+                      <textarea
+                        rows={4}
+                        className="w-full px-3 py-2 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        placeholder="Your message..."
+                      ></textarea>
+                    </div>
+                    <Button className="bg-sky-600 hover:bg-sky-700 text-white">
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Message
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
@@ -699,7 +745,7 @@ const IntroductionPage = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                <Monitor className="w-6 h-6 text-sky-600 dark:text-sky-400" />
                 <span className="text-xl font-bold text-slate-900 dark:text-white">
                   StressGuard AI
                 </span>
