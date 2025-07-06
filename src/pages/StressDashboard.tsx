@@ -26,6 +26,17 @@ import {
   BarChart3,
   Calendar,
   Shield,
+  Home,
+  FileText,
+  Target,
+  Clock,
+  Plus,
+  Search,
+  ChevronDown,
+  Smile,
+  Meh,
+  Frown,
+  UserCircle,
 } from "lucide-react";
 import {
   LineChart,
@@ -37,6 +48,8 @@ import {
   Legend,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import CameraModule from "@/components/CameraModule";
@@ -79,13 +92,12 @@ const StressDashboard = () => {
     i2cEnabled: true,
   });
 
-  // Fetch initial data
+  // All the backend logic remains the same
   useEffect(() => {
     fetchLatestData();
     checkESP32Status();
   }, []);
 
-  // Set up real-time subscription
   useEffect(() => {
     const channel = supabase
       .channel("sensor-data-changes")
@@ -102,7 +114,6 @@ const StressDashboard = () => {
           setIsConnected(true);
           setLastUpdate(new Date());
           updateESP32Status(true);
-          // Process with ML model
           processWithMLModel(payload.new);
         },
       )
@@ -113,7 +124,6 @@ const StressDashboard = () => {
     };
   }, []);
 
-  // Check ESP32 status periodically
   useEffect(() => {
     const interval = setInterval(() => {
       checkESP32Status();
@@ -147,7 +157,6 @@ const StressDashboard = () => {
       if (data && data.length > 0) {
         setSensorData(data);
 
-        // Get latest stress prediction
         const latest = data[0];
         if (latest.stress_predictions && latest.stress_predictions.length > 0) {
           setCurrentStressLevel(latest.stress_predictions[0].stress_level);
@@ -164,7 +173,6 @@ const StressDashboard = () => {
   const processWithMLModel = async (sensorReading: any) => {
     setIsProcessingML(true);
     try {
-      // Generate synthetic data arrays based on sensor readings
       const ecgData = Array.from({ length: 700 }, (_, i) => {
         const baseValue = sensorReading.heart_rate || 75;
         return (baseValue + Math.sin(i * 0.1) * 10 + Math.random() * 5).toFixed(
@@ -181,12 +189,6 @@ const StressDashboard = () => {
         const baseValue = sensorReading.temperature || 36.5;
         return (baseValue + Math.random() * 1).toFixed(2);
       }).join(",");
-
-      console.log("Sending to ML model:", {
-        ecgData: ecgData.substring(0, 50) + "...",
-        edaData,
-        tempData,
-      });
 
       const response = await fetch(
         "https://Haryiank-stress-detector.hf.space/run/predict",
@@ -206,16 +208,12 @@ const StressDashboard = () => {
       }
 
       const result = await response.json();
-      console.log("ML Model Response:", result);
 
       if (result && result.data && result.data.length > 0) {
         const stressResult = result.data[0];
-
-        // Update stress level based on ML prediction
         const newStressLevel = stressResult === "Stress" ? "high" : "low";
         setCurrentStressLevel(newStressLevel);
 
-        // Store prediction in database
         const { error: insertError } = await supabase
           .from("stress_predictions")
           .insert({
@@ -285,7 +283,6 @@ const StressDashboard = () => {
   const resetEvaluation = () => {
     setCurrentStressLevel("low");
     setLastUpdate(new Date());
-    console.log("Evaluation reset - starting fresh analysis");
     toast({
       title: "Evaluation Reset",
       description: "System has been reset for new evaluation",
@@ -295,13 +292,11 @@ const StressDashboard = () => {
   const generateTestData = async () => {
     try {
       const testData = {
-        heart_rate: Math.floor(Math.random() * 40) + 60, // 60-100 bpm
-        temperature: Math.random() * 5 + 35, // 35-40°C
-        gsr_value: Math.random() * 0.5 + 0.1, // 0.1-0.6 µS
+        heart_rate: Math.floor(Math.random() * 40) + 60,
+        temperature: Math.random() * 5 + 35,
+        gsr_value: Math.random() * 0.5 + 0.1,
         timestamp: new Date().toISOString(),
       };
-
-      console.log("Generating test data:", testData);
 
       const { data, error } = await supabase
         .from("sensor_data")
@@ -310,13 +305,9 @@ const StressDashboard = () => {
         .single();
 
       if (error) {
-        console.error("Supabase error:", error);
         throw error;
       }
 
-      console.log("Test data inserted:", data);
-
-      // Process with ML model
       if (data) {
         await processWithMLModel(data);
       }
@@ -338,26 +329,13 @@ const StressDashboard = () => {
   const getStressColor = (level: string) => {
     switch (level) {
       case "low":
-        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+        return "text-emerald-400";
       case "medium":
-        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+        return "text-amber-400";
       case "high":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
+        return "text-red-400";
       default:
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
-    }
-  };
-
-  const getStressIcon = (level: string) => {
-    switch (level) {
-      case "low":
-        return <CheckCircle className="w-5 h-5" />;
-      case "medium":
-        return <AlertTriangle className="w-5 h-5" />;
-      case "high":
-        return <AlertTriangle className="w-5 h-5" />;
-      default:
-        return <Activity className="w-5 h-5" />;
+        return "text-slate-400";
     }
   };
 
@@ -379,567 +357,582 @@ const StressDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
-      {/* Modern Header */}
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-sky-200 dark:border-slate-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Monitor className="w-8 h-8 text-sky-600 dark:text-sky-400" />
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                  StressGuard AI
-                </span>
-              </div>
-              <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2"></div>
-                Live Dashboard
-              </Badge>
+    <div className="min-h-screen bg-slate-900 text-white flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-slate-700">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <Monitor className="w-4 h-4 text-white" />
             </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <Calendar className="w-4 h-4" />
-                Last update: {lastUpdate.toLocaleTimeString()}
-              </div>
-              <ThemeToggle />
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-sky-300 dark:border-slate-600"
-              >
-                <Bell className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-sky-300 dark:border-slate-600"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Link to="/">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-sky-300 dark:border-slate-600"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Exit
-                </Button>
-              </Link>
-            </div>
+            <span className="text-xl font-bold text-white">StressGuard</span>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Quick Actions Bar */}
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Button
-            onClick={() => setShowIntro(true)}
-            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-sky-200 dark:border-slate-600 hover:bg-sky-50 dark:hover:bg-slate-700"
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          <div className="bg-blue-600 rounded-lg px-4 py-3 flex items-center gap-3">
+            <Home className="w-5 h-5" />
+            <span className="font-medium">Dashboard</span>
+          </div>
+          <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 text-slate-300">
+            <FileText className="w-5 h-5" />
+            <span>Health Reports</span>
+          </button>
+          <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 text-slate-300">
+            <Target className="w-5 h-5" />
+            <span>Goals</span>
+            <Badge className="ml-auto bg-blue-600 text-white text-xs">3</Badge>
+          </button>
+          <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 text-slate-300">
+            <Clock className="w-5 h-5" />
+            <span>Reminders</span>
+            <Plus className="ml-auto w-4 h-4" />
+            <Badge className="bg-blue-600 text-white text-xs">4</Badge>
+          </button>
+          <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 text-slate-300">
+            <Settings className="w-5 h-5" />
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        {/* Logout */}
+        <div className="p-4 border-t border-slate-700">
+          <Link
+            to="/"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-700 text-slate-300"
           >
-            <Info className="w-4 h-4 mr-2" />
-            Project Info
-          </Button>
-          <Button
-            onClick={() => setIsCameraActive(!isCameraActive)}
-            className={`${isCameraActive ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"} text-white`}
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            {isCameraActive ? "Stop Camera" : "Start Camera"}
-          </Button>
-          <Button
-            onClick={resetEvaluation}
-            className="bg-amber-500 hover:bg-amber-600 text-white"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Reset
-          </Button>
-          <Button
-            onClick={generateTestData}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            <TestTube className="w-4 h-4 mr-2" />
-            Test Data
-          </Button>
-          <Button
-            onClick={() => setShowChatbot(!showChatbot)}
-            className="bg-purple-500 hover:bg-purple-600 text-white"
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            AI Assistant
-          </Button>
+            <LogOut className="w-5 h-5" />
+            <span>Log out</span>
+          </Link>
         </div>
+      </div>
 
-        {/* Enhanced Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Connection Status */}
-          <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                    Device Status
-                  </p>
-                  <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-                    {esp32Status.connected ? "Connected" : "Offline"}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {esp32Status.connected ? "Live Data" : "No Signal"}
-                  </p>
-                </div>
-                <div
-                  className={`p-3 rounded-xl ${esp32Status.connected ? "bg-emerald-500/20" : "bg-red-500/20"} shadow-lg`}
-                >
-                  {esp32Status.connected ? (
-                    <Wifi className="w-6 h-6 text-emerald-500" />
-                  ) : (
-                    <WifiOff className="w-6 h-6 text-red-500" />
-                  )}
-                </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={() => setShowIntro(true)}
+                className="bg-slate-700 hover:bg-slate-600 text-white"
+              >
+                Get Started
+              </Button>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search any keywords"
+                  className="bg-slate-700 border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 w-80"
+                />
               </div>
-              {esp32Status.connected && (
-                <div className="mt-4 w-full bg-emerald-500/10 rounded-full h-1">
-                  <div className="h-full bg-emerald-500 rounded-full animate-pulse w-full"></div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* ML Model Status */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 backdrop-blur border-blue-200 dark:border-blue-800/30 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
-                    ML Accuracy
-                  </p>
-                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
-                    {mlAccuracy}%
-                  </p>
-                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
-                    WESAD Dataset
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-blue-500/20 shadow-lg">
-                  <Shield className="w-6 h-6 text-blue-500" />
-                </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 text-slate-400 hover:text-white">
+                <Bell className="w-5 h-5" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              </button>
+              <div className="flex items-center gap-2">
+                <UserCircle className="w-8 h-8 text-slate-400" />
               </div>
-              <div className="mt-4 w-full bg-blue-500/10 rounded-full h-1">
-                <div
-                  className="h-full bg-blue-500 rounded-full"
-                  style={{ width: `${mlAccuracy}%` }}
-                ></div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </header>
 
-          {/* Current Stress Level */}
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 backdrop-blur border-purple-200 dark:border-purple-800/30 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">
-                    Stress Level
-                  </p>
-                  <Badge
-                    className={`${getStressColor(currentStressLevel)} flex items-center gap-1 text-sm py-2 px-3 border mt-2`}
-                  >
-                    {getStressIcon(currentStressLevel)}
-                    {currentStressLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="p-3 rounded-xl bg-purple-500/20 shadow-lg">
-                  <TrendingUp className="w-6 h-6 text-purple-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Data Points Count */}
-          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 backdrop-blur border-amber-200 dark:border-amber-800/30 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-amber-600 dark:text-amber-400 text-sm font-medium">
-                    Data Points
-                  </p>
-                  <p className="text-2xl font-bold text-amber-900 dark:text-amber-300">
-                    {sensorData.length}
-                  </p>
-                  <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">
-                    Total Readings
-                  </p>
-                </div>
-                <div className="p-3 rounded-xl bg-amber-500/20 shadow-lg">
-                  <BarChart3 className="w-6 h-6 text-amber-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Camera Module */}
-        {isCameraActive && (
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-                <Camera className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                Facial Expression Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CameraModule
-                isActive={isCameraActive}
-                onEmotionDetected={(emotion, confidence) => {
-                  console.log("Emotion detected:", emotion, confidence);
-                }}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Enhanced Sensor Readings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 border-red-200 dark:border-red-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-500/20 rounded-lg">
-                    <Heart className="w-5 h-5 text-red-500" />
-                  </div>
-                  <div>
-                    <span className="text-red-700 dark:text-red-400 font-semibold">
-                      Heart Rate
-                    </span>
-                    <p className="text-xs text-red-500 dark:text-red-400">
-                      Beats per minute
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">
-                    {latestReading?.heart_rate || "--"}
-                  </p>
-                  <span className="text-sm font-medium text-red-500 dark:text-red-400">
-                    bpm
-                  </span>
-                </div>
-
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center relative overflow-hidden">
-                  <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
-                  <div className="absolute inset-0 bg-red-500/20 rounded-full animate-ping"></div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2">
-                <div className="flex-1 bg-red-100 dark:bg-red-900/20 rounded-full h-2">
-                  <div
-                    className="h-full bg-red-500 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(((latestReading?.heart_rate || 0) / 120) * 100, 100)}%`,
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-red-500 dark:text-red-400">
-                  {latestReading?.heart_rate
-                    ? latestReading.heart_rate > 80
-                      ? "High"
-                      : "Normal"
-                    : "--"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-500/20 rounded-lg">
-                    <Thermometer className="w-5 h-5 text-orange-500" />
-                  </div>
-                  <div>
-                    <span className="text-orange-700 dark:text-orange-400 font-semibold">
-                      Temperature
-                    </span>
-                    <p className="text-xs text-orange-500 dark:text-orange-400">
-                      Body temperature
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
-                    {latestReading?.temperature?.toFixed(1) || "--"}
-                  </p>
-                  <span className="text-sm font-medium text-orange-500 dark:text-orange-400">
-                    °C
-                  </span>
-                </div>
-
-                <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-                  <Thermometer className="w-8 h-8 text-orange-500" />
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2">
-                <div className="flex-1 bg-orange-100 dark:bg-orange-900/20 rounded-full h-2">
-                  <div
-                    className="h-full bg-orange-500 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min((((latestReading?.temperature || 0) - 35) / 5) * 100, 100)}%`,
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-orange-500 dark:text-orange-400">
-                  {latestReading?.temperature
-                    ? latestReading.temperature > 37.5
-                      ? "High"
-                      : "Normal"
-                    : "--"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border-yellow-200 dark:border-yellow-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-500/20 rounded-lg">
-                    <Zap className="w-5 h-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <span className="text-yellow-700 dark:text-yellow-400 font-semibold">
-                      GSR Value
-                    </span>
-                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                      Skin conductance
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-4xl font-bold text-yellow-600 dark:text-yellow-400">
-                    {latestReading?.gsr_value?.toFixed(3) || "--"}
-                  </p>
-                  <span className="text-sm font-medium text-yellow-500 dark:text-yellow-400">
-                    µS
-                  </span>
-                </div>
-
-                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center relative">
-                  <Zap className="w-8 h-8 text-yellow-600" />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2">
-                <div className="flex-1 bg-yellow-100 dark:bg-yellow-900/20 rounded-full h-2">
-                  <div
-                    className="h-full bg-yellow-500 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(((latestReading?.gsr_value || 0) / 1) * 100, 100)}%`,
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-yellow-600 dark:text-yellow-400">
-                  {latestReading?.gsr_value
-                    ? latestReading.gsr_value > 0.5
-                      ? "High"
-                      : "Normal"
-                    : "--"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-                <Heart className="w-5 h-5 text-red-500" />
-                Heart Rate Trend
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-72 w-full">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient
-                          id="heartRateGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
+        <div className="flex-1 flex">
+          {/* Main Dashboard */}
+          <div className="flex-1 p-6 space-y-6">
+            {/* Welcome Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card className="bg-gradient-to-r from-blue-600 to-emerald-600 border-none">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                          Hello User,
+                        </h2>
+                        <p className="text-blue-100 mb-1">
+                          Your health journey starts now—stay on track and
+                          thrive every day!
+                        </p>
+                        <p className="text-blue-200 text-sm mb-4">
+                          Great steps, big changes, let's go!
+                        </p>
+                        <Button
+                          variant="secondary"
+                          className="bg-white/20 hover:bg-white/30 text-white border-white/30"
                         >
-                          <stop
-                            offset="5%"
-                            stopColor="#ef4444"
-                            stopOpacity={0.3}
+                          Learn more →
+                        </Button>
+                      </div>
+                      <div className="hidden lg:block">
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center">
+                          <Activity className="w-24 h-24 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
+                      <UserCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">User</h3>
+                      <p className="text-slate-400 text-sm">
+                        21 years old • Non-smoker
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-white">AB+</div>
+                      <div className="text-xs text-slate-400">Blood</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">176cm</div>
+                      <div className="text-xs text-slate-400">Height</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">60kg</div>
+                      <div className="text-xs text-slate-400">Weight</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <Activity className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-slate-400 text-sm">
+                          Steps taken
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">
+                        {latestReading?.heart_rate || 340}
+                      </div>
+                      <div className="text-slate-400 text-sm">/1000</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
+                          <Zap className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-slate-400 text-sm">
+                          Calories burned
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">408</div>
+                      <div className="text-slate-400 text-sm">kcal</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <Heart className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-slate-400 text-sm">
+                          Water taken
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">100</div>
+                      <div className="text-slate-400 text-sm">liters</div>
+                    </div>
+                    <Badge className="bg-emerald-600 text-white">
+                      New Achievement!
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center justify-between">
+                    Fitness Progress
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400"
+                    >
+                      •••
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    {chartData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <XAxis
+                            dataKey="time"
+                            tick={{ fontSize: 12, fill: "#94a3b8" }}
+                            axisLine={false}
+                            tickLine={false}
                           />
-                          <stop
-                            offset="95%"
-                            stopColor="#ef4444"
-                            stopOpacity={0}
+                          <YAxis
+                            tick={{ fontSize: 12, fill: "#94a3b8" }}
+                            axisLine={false}
+                            tickLine={false}
                           />
-                        </linearGradient>
-                      </defs>
-                      <XAxis
-                        dataKey="time"
-                        tick={{ fontSize: 12, fill: "#64748b" }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 12, fill: "#64748b" }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(255, 255, 255, 0.95)",
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "12px",
-                          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-                        }}
-                      />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#1e293b",
+                              border: "1px solid #475569",
+                              borderRadius: "8px",
+                              color: "#ffffff",
+                            }}
+                          />
+                          <Bar
+                            dataKey="heartRate"
+                            fill="#3b82f6"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">
+                    Sleep Quality and Duration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <div className="text-4xl font-bold text-white mb-2">
+                      86%
+                    </div>
+                    <p className="text-slate-400 mb-4">
+                      You have slept better than 86% of your goals this month
+                    </p>
+                    <div className="w-32 h-32 mx-auto relative">
+                      <div className="w-full h-full rounded-full border-8 border-slate-700"></div>
+                      <div
+                        className="absolute inset-0 rounded-full border-8 border-emerald-500 border-t-transparent"
+                        style={{ transform: "rotate(310deg)" }}
+                      ></div>
+                      <div className="absolute inset-4 bg-slate-700 rounded-full flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">
+                          86%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Bottom Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">
+                    Reminders & Habit Streaks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white font-medium">48min</div>
+                        <div className="text-slate-400 text-sm">
+                          Daily meditation
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white font-medium">32min</div>
+                        <div className="text-slate-400 text-sm">
+                          Morning jog
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">
+                    Health Reports
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-300">Weight loss</span>
+                      <span className="text-emerald-400">Yes increase</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-300">General health</span>
+                      <span className="text-emerald-400">Yes increase</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white mb-2">
+                      {currentStressLevel === "high" ? "68%" : "25%"}
+                    </div>
+                    <p className="text-slate-400 text-sm mb-4">
+                      Current Stress Level: {currentStressLevel}
+                    </p>
+                    <p className="text-slate-500 text-xs">
+                      Overall a positive stress level throughout the day
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={() => setIsCameraActive(!isCameraActive)}
+                className={`${isCameraActive ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"} text-white`}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                {isCameraActive ? "Stop Camera" : "Start Camera"}
+              </Button>
+              <Button
+                onClick={resetEvaluation}
+                className="bg-slate-700 hover:bg-slate-600 text-white"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button
+                onClick={generateTestData}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                Test Data
+              </Button>
+              <Button
+                onClick={() => setShowChatbot(!showChatbot)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                AI Assistant
+              </Button>
+            </div>
+
+            {/* Camera Module */}
+            {isCameraActive && (
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">
+                    Facial Expression Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CameraModule
+                    isActive={isCameraActive}
+                    onEmotionDetected={(emotion, confidence) => {
+                      console.log("Emotion detected:", emotion, confidence);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Chatbot */}
+            {showChatbot && (
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">
+                    AI Stress Assistant
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <StressChatbot />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="w-80 bg-slate-800 border-l border-slate-700 p-6 space-y-6">
+            {/* User Info */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <UserCircle className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-semibold text-white">User</h3>
+              <p className="text-slate-400 text-sm">21 years old</p>
+              <Button className="w-full mt-3 bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add reminder
+              </Button>
+            </div>
+
+            {/* Calendar */}
+            <Card className="bg-slate-700 border-slate-600">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center justify-between text-sm">
+                  October
+                  <ChevronDown className="w-4 h-4" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-7 gap-1 text-xs">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day) => (
+                      <div key={day} className="text-center p-1 text-slate-400">
+                        {day}
+                      </div>
+                    ),
+                  )}
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`text-center p-1 ${i === 13 ? "bg-blue-600 text-white rounded" : "text-slate-300"}`}
+                    >
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Weekly Wellness Tracker */}
+            <Card className="bg-slate-700 border-slate-600">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">
+                  Weekly Wellness Tracker
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-20 mb-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData.slice(0, 7)}>
                       <Area
                         type="monotone"
                         dataKey="heartRate"
-                        stroke="#ef4444"
-                        strokeWidth={3}
-                        fill="url(#heartRateGradient)"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.3}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-slate-400">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Waiting for sensor data...</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-xs">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day) => (
+                      <div key={day} className="text-center text-slate-400">
+                        {day}
+                      </div>
+                    ),
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-                <Activity className="w-5 h-5 text-purple-500" />
-                Multi-Sensor Data
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-72 w-full">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <XAxis
-                        dataKey="time"
-                        tick={{ fontSize: 12, fill: "#64748b" }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 12, fill: "#64748b" }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(255, 255, 255, 0.95)",
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "12px",
-                          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-                        }}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="heartRate"
-                        stroke="#ef4444"
-                        strokeWidth={3}
-                        name="Heart Rate (bpm)"
-                        dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="temperature"
-                        stroke="#f97316"
-                        strokeWidth={3}
-                        name="Temperature (°C)"
-                        dot={{ fill: "#f97316", strokeWidth: 2, r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="gsr"
-                        stroke="#eab308"
-                        strokeWidth={3}
-                        name="GSR (µS)"
-                        dot={{ fill: "#eab308", strokeWidth: 2, r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-slate-400">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Waiting for sensor data...</p>
-                    </div>
+            {/* Mental Well-being */}
+            <Card className="bg-slate-700 border-slate-600">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">
+                  Mental Well-being
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-300 text-sm mb-3">
+                  How do you feel today?
+                </p>
+                <div className="flex justify-between">
+                  <button className="p-2 rounded-full bg-red-600">
+                    <Frown className="w-5 h-5 text-white" />
+                  </button>
+                  <button className="p-2 rounded-full bg-slate-600">
+                    <Meh className="w-5 h-5 text-white" />
+                  </button>
+                  <button className="p-2 rounded-full bg-slate-600">
+                    <Smile className="w-5 h-5 text-white" />
+                  </button>
+                  <button className="p-2 rounded-full bg-slate-600">
+                    <Smile className="w-5 h-5 text-white" />
+                  </button>
+                  <button className="p-2 rounded-full bg-slate-600">
+                    <Smile className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stress Tracker */}
+            <Card className="bg-slate-700 border-slate-600">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">
+                  Stress Tracker & Calming Meter
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {currentStressLevel === "high" ? "68%" : "25%"}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <p className="text-slate-400 text-xs mb-4">
+                    Current Stress Level: {currentStressLevel}
+                  </p>
+                  <p className="text-slate-500 text-xs">
+                    Overall a positive stress level throughout the day
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Stress Alert */}
-        {currentStressLevel === "high" && (
-          <Alert className="border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20 backdrop-blur-sm">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <AlertDescription className="text-red-700 dark:text-red-300">
-              <strong>High stress level detected!</strong> Consider taking a
-              break or practicing relaxation techniques.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Chatbot */}
-        {showChatbot && (
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-                <MessageCircle className="w-5 h-5 text-purple-500" />
-                AI Stress Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StressChatbot />
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
 };
 
-// Introduction Page Component
+// Introduction Page Component (same as before)
 const IntroPage = ({ onContinue }: { onContinue: () => void }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
@@ -953,7 +946,6 @@ const IntroPage = ({ onContinue }: { onContinue: () => void }) => {
           </p>
         </CardHeader>
         <CardContent className="space-y-8">
-          {/* Team Section */}
           <div className="text-center">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
               Our Team
@@ -964,7 +956,6 @@ const IntroPage = ({ onContinue }: { onContinue: () => void }) => {
             </p>
           </div>
 
-          {/* Hardware Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl font-bold text-sky-600 dark:text-sky-400 mb-4">
@@ -994,7 +985,6 @@ const IntroPage = ({ onContinue }: { onContinue: () => void }) => {
             </div>
           </div>
 
-          {/* Features Section */}
           <div>
             <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">
               🚀 Key Features
@@ -1015,7 +1005,6 @@ const IntroPage = ({ onContinue }: { onContinue: () => void }) => {
             </div>
           </div>
 
-          {/* Dataset & Accuracy */}
           <div className="text-center bg-gradient-to-r from-sky-100 to-cyan-100 dark:from-sky-900/20 dark:to-cyan-900/20 p-6 rounded-lg border border-sky-200 dark:border-sky-800/30">
             <h3 className="text-xl font-bold text-amber-600 dark:text-amber-400 mb-2">
               🎯 ML Model Performance
