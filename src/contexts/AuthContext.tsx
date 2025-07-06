@@ -68,34 +68,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Verify session with backend
-      const { data, error } = await supabase
-        .from("user_sessions")
-        .select(
-          `
-          user_id,
-          expires_at,
-          auth_users(id, email, full_name)
-        `,
-        )
-        .eq("session_token", sessionToken)
-        .gt("expires_at", new Date().toISOString())
-        .single();
+      // Check for mock user first
+      const mockUser = localStorage.getItem("mock_user");
+      if (mockUser) {
+        try {
+          const userData = JSON.parse(mockUser);
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            full_name: userData.full_name,
+          });
 
-      if (error || !data) {
-        localStorage.removeItem("session_token");
-        setLoading(false);
-        return;
+          // Set mock profile
+          const mockProfile = mockProfiles.find(
+            (p) => p.user_id === userData.id,
+          );
+          if (mockProfile) {
+            setProfile(mockProfile);
+          }
+
+          setLoading(false);
+          return;
+        } catch (e) {
+          localStorage.removeItem("mock_user");
+        }
       }
 
-      const userData = data.auth_users as any;
-      setUser({
-        id: userData.id,
-        email: userData.email,
-        full_name: userData.full_name,
-      });
+      // Try Supabase session verification
+      try {
+        const { data, error } = await supabase
+          .from("user_sessions")
+          .select(
+            `
+            user_id,
+            expires_at,
+            auth_users(id, email, full_name)
+          `,
+          )
+          .eq("session_token", sessionToken)
+          .gt("expires_at", new Date().toISOString())
+          .single();
 
-      await fetchUserProfile(userData.id);
+        if (!error && data) {
+          const userData = data.auth_users as any;
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            full_name: userData.full_name,
+          });
+
+          await fetchUserProfile(userData.id);
+          setLoading(false);
+          return;
+        }
+      } catch (supabaseError) {
+        console.log("Supabase session check failed:", supabaseError);
+      }
+
+      // Clean up invalid session
+      localStorage.removeItem("session_token");
+      localStorage.removeItem("mock_user");
     } catch (error) {
       console.error("Auth check error:", error);
     } finally {
