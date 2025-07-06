@@ -181,48 +181,25 @@ const IntroductionPage = () => {
           </div>
           <div className="relative">
             <div className="w-96 h-96 mx-auto relative bg-gradient-to-br from-sky-50/50 to-cyan-50/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-2xl border border-sky-200 dark:border-slate-600 overflow-hidden backdrop-blur-sm">
-              {/* ECG Monitor */}
+              {/* Pulse Animation */}
               <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                <div className="w-full mb-8">
-                  <div className="ecg-container">
-                    <div className="ecg-grid"></div>
-                    <div className="ecg-wrapper">
-                      <div className="ecg-line1"></div>
-                      <div className="ecg-line2"></div>
-                      <div className="ecg-line3"></div>
-                      <div className="ecg-line4"></div>
-                      <div className="ecg-line5"></div>
-                    </div>
+                <div className="w-full mb-8 flex justify-center">
+                  <div className="cWrapper">
+                    <div className="cLine cLine1"></div>
+                    <div className="cLine cLine2"></div>
+                    <div className="cLine cLine3"></div>
+                    <div className="cLine cLine4"></div>
                   </div>
                 </div>
 
                 <div className="text-center">
                   <Activity className="w-12 h-12 text-sky-600 dark:text-sky-400 mx-auto mb-3" />
                   <p className="text-sky-600 dark:text-sky-400 font-semibold text-lg">
-                    Heart Rate Monitoring
+                    Real-time Monitoring
                   </p>
                   <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                    Real-time ECG Analysis
+                    AI-Powered Detection
                   </p>
-
-                  <div className="flex justify-center gap-4 mt-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">
-                        75
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        BPM
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                        Normal
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        Status
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

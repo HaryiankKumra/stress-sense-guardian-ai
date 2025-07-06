@@ -135,96 +135,63 @@
     animation: pulseLeftToRight 2s ease-in-out infinite;
   }
 
-  /* ECG Pulse Animation */
-  .ecg-wrapper {
+  /* Pulse Animation */
+  .cWrapper {
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    animation: pulseMove 2s infinite ease-in-out;
+  }
+
+  .cLine {
+    width: 100px;
     height: 100px;
-    width: 200px;
-    position: relative;
-    overflow: hidden;
+    border: 1px solid;
   }
 
-  .ecg-line {
-    position: relative;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
-    animation: ecgPulse 2s infinite linear;
+  .cLine1 {
+    background-color: transparent;
+    border-color: transparent #0ea5e9 #0ea5e9 transparent;
+    border-bottom-right-radius: 20px;
   }
 
-  .ecg-line1 {
-    width: 30px;
-    height: 2px;
-    background: #0ea5e9;
+  .cLine2 {
+    width: 20px;
+    height: 150px;
+    background-color: transparent;
+    border-color: #0ea5e9 #0ea5e9 transparent transparent;
+    border-top-right-radius: 20px;
   }
 
-  .ecg-line2 {
-    width: 2px;
-    height: 40px;
-    background: #0ea5e9;
-    margin: 0 2px;
+  .cLine3 {
+    width: 20px;
+    height: 50px;
+    background-color: transparent;
+    border-color: transparent #0ea5e9 #0ea5e9 transparent;
+    border-bottom-right-radius: 20px;
+    align-self: flex-end;
   }
 
-  .ecg-line3 {
-    width: 2px;
-    height: 80px;
-    background: #0ea5e9;
-    margin: 0 1px;
+  .cLine4 {
+    width: 50px;
+    height: 100px;
+    background-color: transparent;
+    border-color: transparent transparent #0ea5e9 transparent;
   }
 
-  .ecg-line4 {
-    width: 2px;
-    height: 20px;
-    background: #0ea5e9;
-    margin: 0 2px;
-  }
-
-  .ecg-line5 {
-    width: 40px;
-    height: 2px;
-    background: #0ea5e9;
-  }
-
-  @keyframes ecgPulse {
+  @keyframes pulseMove {
     0% {
-      transform: translateX(-100px);
-      opacity: 0;
+      transform: translateX(-20px);
+      opacity: 0.7;
     }
-    10% {
-      opacity: 1;
-    }
-    90% {
+    50% {
+      transform: translateX(20px);
       opacity: 1;
     }
     100% {
-      transform: translateX(300px);
-      opacity: 0;
+      transform: translateX(-20px);
+      opacity: 0.7;
     }
-  }
-
-  .ecg-container {
-    position: relative;
-    width: 100%;
-    height: 100px;
-    background: rgba(14, 165, 233, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .ecg-grid {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image:
-      linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
   }
 
   .heartbeat {
