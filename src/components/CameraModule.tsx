@@ -27,9 +27,9 @@ const CameraModule: React.FC<CameraModuleProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !localCameraActive) {
       startCamera();
-    } else {
+    } else if (!isActive && localCameraActive) {
       stopCamera();
     }
 
@@ -161,11 +161,11 @@ const CameraModule: React.FC<CameraModuleProps> = ({
     setLocalCameraActive(false);
   };
 
-  const toggleCamera = () => {
+  const toggleCamera = async () => {
     if (localCameraActive) {
       stopCamera();
     } else {
-      startCamera();
+      await startCamera();
     }
   };
 
