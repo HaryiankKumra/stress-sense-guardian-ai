@@ -55,6 +55,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleFillCredentials = (email: string, password: string) => {
+    setEmail(email);
+    setPassword(password);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-slate-50 dark:from-slate-900 dark:via-sky-900 dark:to-slate-900 flex items-center justify-center p-6">
       <div className="absolute top-6 right-6">
