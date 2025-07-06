@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Eye, EyeOff } from "lucide-react";
+import { Monitor, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function SignupPage() {
@@ -55,7 +55,7 @@ export default function SignupPage() {
             to="/"
             className="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400"
           >
-            <Brain className="w-8 h-8" />
+            <Monitor className="w-8 h-8" />
             <span className="text-2xl font-bold">StressGuard AI</span>
           </Link>
         </div>
