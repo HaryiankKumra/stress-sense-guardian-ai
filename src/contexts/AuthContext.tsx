@@ -216,33 +216,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, fullName: string) => {
     try {
-      // Check if user exists
-      const { data: existingUser } = await supabase
-        .from("auth_users")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (existingUser) {
+      // Check if user exists in mock data first
+      const existingMockUser = mockUsers.find((u) => u.email === email);
+      if (existingMockUser) {
         return { success: false, error: "Email already exists" };
       }
 
-      // Hash password (in production, use proper bcrypt)
-      const passwordHash = btoa(password);
+      // Try Supabase first
+      try {
+        const { data: existingUser } = await supabase
+          .from("auth_users")
+          .select("id")
+          .eq("email", email)
+          .single();
 
-      const { data: newUser, error } = await supabase
-        .from("auth_users")
-        .insert({
-          email,
-          password_hash: passwordHash,
-          full_name: fullName,
-        })
-        .select()
-        .single();
+        if (existingUser) {
+          return { success: false, error: "Email already exists" };
+        }
 
-      if (error || !newUser) {
-        return { success: false, error: "Signup failed" };
+        // Hash password (in production, use proper bcrypt)
+        const passwordHash = btoa(password);
+
+        const { data: newUser, error } = await supabase
+          .from("auth_users")
+          .insert({
+            email,
+            password_hash: passwordHash,
+            full_name: fullName,
+          })
+          .select()
+          .single();
+
+        if (!error && newUser) {
+          // Auto-login after signup
+          return await login(email, password);
+        }
+      } catch (supabaseError) {
+        console.log(
+          "Supabase signup failed, using mock signup:",
+          supabaseError,
+        );
       }
+
+      // Fallback to mock signup (for demo purposes)
+      const newMockUser = {
+        id: (mockUsers.length + 1).toString(),
+        email,
+        password_hash: btoa(password),
+        full_name: fullName,
+      };
+
+      // In a real app, this would persist to a database
+      // For demo, we'll just use the existing mock data
+      console.log("Mock user created:", newMockUser);
 
       // Auto-login after signup
       return await login(email, password);
