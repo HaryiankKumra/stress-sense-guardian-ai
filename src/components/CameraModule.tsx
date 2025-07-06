@@ -73,11 +73,8 @@ const CameraModule: React.FC<CameraModuleProps> = ({
       }
 
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: "user",
-        },
+        video: true,
+        audio: false,
       });
 
       if (videoRef.current) {
@@ -87,10 +84,19 @@ const CameraModule: React.FC<CameraModuleProps> = ({
         setLocalCameraActive(true);
         setPermissionState("granted");
 
-        // Start emotion detection
-        setTimeout(() => {
-          startEmotionDetection();
-        }, 1000);
+        // Wait for video to load before starting detection
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current
+              .play()
+              .then(() => {
+                setTimeout(() => {
+                  startEmotionDetection();
+                }, 1000);
+              })
+              .catch(console.error);
+          }
+        };
       }
     } catch (err: any) {
       console.error("Error accessing camera:", err);
