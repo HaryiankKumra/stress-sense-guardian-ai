@@ -10,12 +10,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Monitor, Eye, EyeOff } from "lucide-react";
+import { Monitor, Eye, EyeOff, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,16 +26,50 @@ export default function SignupPage() {
     confirmPassword: "",
   });
   const navigate = useNavigate();
+  const { signup } = useAuth();
+  const { toast } = useToast();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo signup - in real app would create account
-    if (
-      formData.password === formData.confirmPassword &&
-      formData.email &&
-      formData.name
-    ) {
-      navigate("/dashboard");
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password mismatch",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await signup(
+        formData.email,
+        formData.password,
+        formData.name,
+      );
+      if (result.success) {
+        toast({
+          title: "Account created successfully",
+          description: "Welcome to StressGuard AI!",
+        });
+        navigate("/dashboard");
+      } else {
+        toast({
+          title: "Signup failed",
+          description: result.error || "Failed to create account",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
