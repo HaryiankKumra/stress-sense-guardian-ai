@@ -601,7 +601,7 @@ const IntroductionPage = () => {
       {/* Contact Section */}
       <section
         id="contact"
-        className="bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700 py-20 transition-colors duration-300"
+        className="bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 py-20 transition-colors duration-300"
       >
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -609,50 +609,50 @@ const IntroductionPage = () => {
               Contact Us
             </Badge>
             <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-6">
-              Let's Connect
+              Let's Connect & Collaborate
             </h2>
-            <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Ready to explore the future of stress detection? Get in touch with
-              our team at Thapar University.
+            <p className="text-slate-600 dark:text-slate-300 max-w-3xl mx-auto text-lg">
+              Ready to explore the future of stress detection? Join us in
+              revolutionizing mental health technology. Get in touch with our
+              innovative team at Thapar University.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Contact Information Cards */}
-            <div className="space-y-6">
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Left Side - Contact Information & Form */}
+            <div className="space-y-8">
+              {/* Contact Information Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <MapPin className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
                         Our Location
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-300 text-sm">
+                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                         Thapar Institute of Engineering & Technology
                         <br />
-                        P.O. Box 32, Patiala, Punjab 147004
+                        P.O. Box 32, Patiala
                         <br />
-                        India
+                        Punjab 147004, India
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Phone className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
                         Contact Info
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-300 text-sm">
+                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                         Phone: +91 175 239 3021
                         <br />
                         Email: contact@stressguard.ai
@@ -660,53 +660,141 @@ const IntroductionPage = () => {
                         Support: 24/7 Available
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-white" />
-                    </div>
+              {/* Quick Links & Social */}
+              <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur border-sky-200 dark:border-slate-700">
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                        Quick Links
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                        Quick Contact
                       </h3>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <a
                           href="mailto:contact@stressguard.ai"
-                          className="block text-sky-600 dark:text-sky-400 hover:underline text-sm"
+                          className="block p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
                         >
-                          Research Collaboration
+                          <div className="text-sky-600 dark:text-sky-400 font-medium text-sm">
+                            Research Collaboration
+                          </div>
+                          <div className="text-slate-500 dark:text-slate-400 text-xs">
+                            collaborate@stressguard.ai
+                          </div>
                         </a>
                         <a
                           href="mailto:support@stressguard.ai"
-                          className="block text-sky-600 dark:text-sky-400 hover:underline text-sm"
+                          className="block p-3 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 transition-colors"
                         >
-                          Technical Support
+                          <div className="text-cyan-600 dark:text-cyan-400 font-medium text-sm">
+                            Technical Support
+                          </div>
+                          <div className="text-slate-500 dark:text-slate-400 text-xs">
+                            support@stressguard.ai
+                          </div>
                         </a>
                         <a
                           href="mailto:partnerships@stressguard.ai"
-                          className="block text-sky-600 dark:text-sky-400 hover:underline text-sm"
+                          className="block p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                         >
-                          Business Partnerships
+                          <div className="text-emerald-600 dark:text-emerald-400 font-medium text-sm">
+                            Business Partnerships
+                          </div>
+                          <div className="text-slate-500 dark:text-slate-400 text-xs">
+                            partnerships@stressguard.ai
+                          </div>
                         </a>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                        Office Hours
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-300">
+                            Monday - Friday
+                          </span>
+                          <span className="text-slate-900 dark:text-white font-medium">
+                            9:00 AM - 6:00 PM
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-300">
+                            Saturday
+                          </span>
+                          <span className="text-slate-900 dark:text-white font-medium">
+                            10:00 AM - 4:00 PM
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-300">
+                            Sunday
+                          </span>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            Closed
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-600">
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                          Follow Our Research
+                        </h4>
+                        <div className="flex gap-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-sky-300 dark:border-sky-600 text-sky-600 dark:text-sky-400"
+                          >
+                            LinkedIn
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-sky-300 dark:border-sky-600 text-sky-600 dark:text-sky-400"
+                          >
+                            GitHub
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Response Time Indicator */}
+              <div className="text-center">
+                <div className="inline-flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur border border-sky-200 dark:border-slate-700 rounded-2xl px-6 py-4">
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                    Average response time:{" "}
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                      2-4 hours
+                    </span>
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Google Maps */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur border-sky-200 dark:border-slate-700 overflow-hidden">
+            {/* Right Side - Map & Contact Form */}
+            <div className="space-y-8">
+              {/* Google Maps */}
+              <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur border-sky-200 dark:border-slate-700 overflow-hidden">
+                <CardHeader className="pb-0">
+                  <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                    Find Us at Thapar University
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="p-0">
                   <div className="h-80 bg-slate-200 dark:bg-slate-700">
                     <iframe
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3434.0842398571437!2d76.36230837432056!3d30.66651197464618!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390fefb8ab4e7be7%3A0x65b31c5f7dc3f2b8!2sThapar%20Institute%20of%20Engineering%20and%20Technology!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3434.0842398571437!2d76.36230837432056!3d30.66651197464618!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390fefb8ab4e7be7%3A0x65b31c5f7dc3f2b8!2sThapar%20Institute%20of%20Engineering%20%26%20Technology%2C%20Patiala%2C%20Punjab%20147004!5e0!3m2!1sen!2sin!4v1751799123456!5m2!1sen!2sin"
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -720,78 +808,72 @@ const IntroductionPage = () => {
               </Card>
 
               {/* Contact Form */}
-              <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur border-sky-200 dark:border-slate-700">
+              <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur border-sky-200 dark:border-slate-700">
                 <CardHeader>
                   <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
                     <Send className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                     Send us a Message
                   </CardTitle>
+                  <p className="text-slate-600 dark:text-slate-300 text-sm">
+                    Have a question or want to collaborate? We'd love to hear
+                    from you!
+                  </p>
                 </CardHeader>
                 <CardContent>
-                  <form className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
+                  <form className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                           Full Name *
                         </label>
                         <input
                           type="text"
                           required
-                          className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors"
+                          className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                           placeholder="Enter your full name"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                           Email Address *
                         </label>
                         <input
                           type="email"
                           required
-                          className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors"
+                          className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                           placeholder="Enter your email"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Subject *
                       </label>
                       <input
                         type="text"
                         required
-                        className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors"
+                        className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                         placeholder="What is this about?"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Message *
                       </label>
                       <textarea
-                        rows={4}
+                        rows={5}
                         required
-                        className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors resize-none"
-                        placeholder="Tell us more about your inquiry..."
+                        className="w-full px-4 py-3 border border-sky-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Tell us more about your inquiry, collaboration ideas, or any questions you have..."
                       ></textarea>
                     </div>
-                    <Button className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white py-3 text-lg">
+                    <Button className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                       <Send className="w-5 h-5 mr-2" />
                       Send Message
                     </Button>
                   </form>
                 </CardContent>
               </Card>
-            </div>
-          </div>
-
-          {/* Additional Info Bar */}
-          <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur border border-sky-200 dark:border-slate-700 rounded-full px-6 py-3">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-slate-600 dark:text-slate-300 text-sm">
-                We typically respond within 24 hours
-              </span>
             </div>
           </div>
         </div>
