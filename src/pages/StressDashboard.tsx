@@ -600,76 +600,165 @@ const StressDashboard = () => {
           </Card>
         )}
 
-        {/* Sensor Readings */}
+        {/* Enhanced Sensor Readings */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 border-red-200 dark:border-red-800/30">
+          <Card className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 border-red-200 dark:border-red-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500/20 rounded-lg">
                     <Heart className="w-5 h-5 text-red-500" />
-                    <span className="text-red-700 dark:text-red-400 font-medium">
+                  </div>
+                  <div>
+                    <span className="text-red-700 dark:text-red-400 font-semibold">
                       Heart Rate
                     </span>
+                    <p className="text-xs text-red-500 dark:text-red-400">
+                      Beats per minute
+                    </p>
                   </div>
-                  <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">
                     {latestReading?.heart_rate || "--"}
-                    <span className="text-lg font-normal text-red-500 ml-1">
-                      bpm
-                    </span>
                   </p>
+                  <span className="text-sm font-medium text-red-500 dark:text-red-400">
+                    bpm
+                  </span>
                 </div>
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center relative overflow-hidden">
                   <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 bg-red-500/20 rounded-full animate-ping"></div>
                 </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <div className="flex-1 bg-red-100 dark:bg-red-900/20 rounded-full h-2">
+                  <div
+                    className="h-full bg-red-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(((latestReading?.heart_rate || 0) / 120) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="text-xs text-red-500 dark:text-red-400">
+                  {latestReading?.heart_rate
+                    ? latestReading.heart_rate > 80
+                      ? "High"
+                      : "Normal"
+                    : "--"}
+                </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800/30">
+          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-500/20 rounded-lg">
                     <Thermometer className="w-5 h-5 text-orange-500" />
-                    <span className="text-orange-700 dark:text-orange-400 font-medium">
+                  </div>
+                  <div>
+                    <span className="text-orange-700 dark:text-orange-400 font-semibold">
                       Temperature
                     </span>
+                    <p className="text-xs text-orange-500 dark:text-orange-400">
+                      Body temperature
+                    </p>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                    {latestReading?.temperature?.toFixed(1) || "--"}
-                    <span className="text-lg font-normal text-orange-500 ml-1">
-                      °C
-                    </span>
-                  </p>
                 </div>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
+                    {latestReading?.temperature?.toFixed(1) || "--"}
+                  </p>
+                  <span className="text-sm font-medium text-orange-500 dark:text-orange-400">
+                    °C
+                  </span>
+                </div>
+
                 <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                   <Thermometer className="w-8 h-8 text-orange-500" />
                 </div>
               </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <div className="flex-1 bg-orange-100 dark:bg-orange-900/20 rounded-full h-2">
+                  <div
+                    className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min((((latestReading?.temperature || 0) - 35) / 5) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="text-xs text-orange-500 dark:text-orange-400">
+                  {latestReading?.temperature
+                    ? latestReading.temperature > 37.5
+                      ? "High"
+                      : "Normal"
+                    : "--"}
+                </span>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border-yellow-200 dark:border-yellow-800/30">
+          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border-yellow-200 dark:border-yellow-800/30 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-500/20 rounded-lg">
                     <Zap className="w-5 h-5 text-yellow-600" />
-                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">
+                  </div>
+                  <div>
+                    <span className="text-yellow-700 dark:text-yellow-400 font-semibold">
                       GSR Value
                     </span>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                      Skin conductance
+                    </p>
                   </div>
-                  <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-4xl font-bold text-yellow-600 dark:text-yellow-400">
                     {latestReading?.gsr_value?.toFixed(3) || "--"}
-                    <span className="text-lg font-normal text-yellow-500 ml-1">
-                      µS
-                    </span>
                   </p>
+                  <span className="text-sm font-medium text-yellow-500 dark:text-yellow-400">
+                    µS
+                  </span>
                 </div>
-                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+
+                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center relative">
                   <Zap className="w-8 h-8 text-yellow-600" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full animate-pulse"></div>
                 </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <div className="flex-1 bg-yellow-100 dark:bg-yellow-900/20 rounded-full h-2">
+                  <div
+                    className="h-full bg-yellow-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(((latestReading?.gsr_value || 0) / 1) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                  {latestReading?.gsr_value
+                    ? latestReading.gsr_value > 0.5
+                      ? "High"
+                      : "Normal"
+                    : "--"}
+                </span>
               </div>
             </CardContent>
           </Card>
