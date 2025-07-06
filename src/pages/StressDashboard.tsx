@@ -472,22 +472,25 @@ const StressDashboard = () => {
           </Button>
         </div>
 
-        {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Enhanced Status Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Connection Status */}
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
+          <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 backdrop-blur border-sky-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                     Device Status
                   </p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
                     {esp32Status.connected ? "Connected" : "Offline"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {esp32Status.connected ? "Live Data" : "No Signal"}
                   </p>
                 </div>
                 <div
-                  className={`p-3 rounded-full ${esp32Status.connected ? "bg-emerald-500/20" : "bg-red-500/20"}`}
+                  className={`p-3 rounded-xl ${esp32Status.connected ? "bg-emerald-500/20" : "bg-red-500/20"} shadow-lg`}
                 >
                   {esp32Status.connected ? (
                     <Wifi className="w-6 h-6 text-emerald-500" />
@@ -496,45 +499,81 @@ const StressDashboard = () => {
                   )}
                 </div>
               </div>
+              {esp32Status.connected && (
+                <div className="mt-4 w-full bg-emerald-500/10 rounded-full h-1">
+                  <div className="h-full bg-emerald-500 rounded-full animate-pulse w-full"></div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* ML Model Status */}
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 backdrop-blur border-blue-200 dark:border-blue-800/30 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
                     ML Accuracy
                   </p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                     {mlAccuracy}%
                   </p>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
+                    WESAD Dataset
+                  </p>
                 </div>
-                <div className="p-3 rounded-full bg-blue-500/20">
+                <div className="p-3 rounded-xl bg-blue-500/20 shadow-lg">
                   <Shield className="w-6 h-6 text-blue-500" />
                 </div>
+              </div>
+              <div className="mt-4 w-full bg-blue-500/10 rounded-full h-1">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${mlAccuracy}%` }}
+                ></div>
               </div>
             </CardContent>
           </Card>
 
           {/* Current Stress Level */}
-          <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur border-sky-200 dark:border-slate-700">
+          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 backdrop-blur border-purple-200 dark:border-purple-800/30 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <div className="flex-1">
+                  <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">
                     Stress Level
                   </p>
                   <Badge
-                    className={`${getStressColor(currentStressLevel)} flex items-center gap-1 text-base py-2 px-4 border mt-2`}
+                    className={`${getStressColor(currentStressLevel)} flex items-center gap-1 text-sm py-2 px-3 border mt-2`}
                   >
                     {getStressIcon(currentStressLevel)}
                     {currentStressLevel.toUpperCase()}
                   </Badge>
                 </div>
-                <div className="p-3 rounded-full bg-purple-500/20">
+                <div className="p-3 rounded-xl bg-purple-500/20 shadow-lg">
                   <TrendingUp className="w-6 h-6 text-purple-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Points Count */}
+          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 backdrop-blur border-amber-200 dark:border-amber-800/30 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-amber-600 dark:text-amber-400 text-sm font-medium">
+                    Data Points
+                  </p>
+                  <p className="text-2xl font-bold text-amber-900 dark:text-amber-300">
+                    {sensorData.length}
+                  </p>
+                  <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">
+                    Total Readings
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-500/20 shadow-lg">
+                  <BarChart3 className="w-6 h-6 text-amber-500" />
                 </div>
               </div>
             </CardContent>
