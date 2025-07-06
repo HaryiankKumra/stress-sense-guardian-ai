@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { mockUsers, mockProfiles } from "@/utils/mockAuth";
 
 interface User {
   id: string;
