@@ -176,8 +176,16 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 className="w-full bg-sky-600 hover:bg-sky-700 text-white"
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </Button>
             </form>
 
