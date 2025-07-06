@@ -180,17 +180,49 @@ const IntroductionPage = () => {
             </div>
           </div>
           <div className="relative">
-            <div className="w-96 h-96 mx-auto relative bg-slate-100/10 dark:bg-slate-800/10 rounded-2xl overflow-hidden">
-              {/* Left-to-Right Pulse Animation */}
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent pulse-line"></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-96 h-96 mx-auto relative bg-gradient-to-br from-sky-50/50 to-cyan-50/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-2xl border border-sky-200 dark:border-slate-600 overflow-hidden backdrop-blur-sm">
+              {/* ECG Monitor */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
+                <div className="w-full mb-8">
+                  <div className="ecg-container">
+                    <div className="ecg-grid"></div>
+                    <div className="ecg-wrapper">
+                      <div className="ecg-line1"></div>
+                      <div className="ecg-line2"></div>
+                      <div className="ecg-line3"></div>
+                      <div className="ecg-line4"></div>
+                      <div className="ecg-line5"></div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="text-center">
-                  <Activity className="w-16 h-16 text-sky-600 dark:text-sky-400 mx-auto mb-4" />
-                  <p className="text-sky-600 dark:text-sky-400 font-semibold">
-                    Real-time Monitoring
+                  <Activity className="w-12 h-12 text-sky-600 dark:text-sky-400 mx-auto mb-3" />
+                  <p className="text-sky-600 dark:text-sky-400 font-semibold text-lg">
+                    Heart Rate Monitoring
                   </p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                    Real-time ECG Analysis
+                  </p>
+
+                  <div className="flex justify-center gap-4 mt-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+                        75
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        BPM
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        Normal
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        Status
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
