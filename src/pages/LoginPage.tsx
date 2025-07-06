@@ -164,6 +164,8 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
+
+            <TestCredentials onFillCredentials={handleFillCredentials} />
           </CardContent>
         </Card>
       </div>
