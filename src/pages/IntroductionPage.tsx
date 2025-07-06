@@ -185,10 +185,10 @@ const IntroductionPage = () => {
               <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
                 <div className="w-full mb-8 flex justify-center">
                   <div className="cWrapper">
-                    <div className="cLine cLine1"></div>
-                    <div className="cLine cLine2"></div>
-                    <div className="cLine cLine3"></div>
-                    <div className="cLine cLine4"></div>
+                    <canvas className="cLine cLine1"></canvas>
+                    <canvas className="cLine cLine2"></canvas>
+                    <canvas className="cLine cLine3"></canvas>
+                    <canvas className="cLine cLine4"></canvas>
                   </div>
                 </div>
 
