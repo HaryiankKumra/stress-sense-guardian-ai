@@ -23,7 +23,6 @@ import {
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { TestCredentials } from "@/components/TestCredentials";
 import { quickConnectionTest } from "@/utils/supabaseHealthCheck";
 
 export default function LoginPage() {
