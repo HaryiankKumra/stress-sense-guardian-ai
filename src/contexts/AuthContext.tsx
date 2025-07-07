@@ -159,7 +159,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 supabaseUser.email ||
                 "",
             });
-            await fetchUserProfile(supabaseUser.id);
+
+            // Don't wait for profile fetch in auth state changes
+            fetchUserProfile(supabaseUser.id).catch((error) => {
+              console.warn("⚠️ Auth state profile fetch failed:", error);
+            });
           } else {
             // Only clear user if not using mock auth
             const mockUser = localStorage.getItem("mock_user");
