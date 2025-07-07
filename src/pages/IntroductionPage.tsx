@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DatabaseDebugger from "@/components/DatabaseDebugger";
+import AuthDebugger from "@/components/AuthDebugger";
 import {
   Brain,
   Heart,
