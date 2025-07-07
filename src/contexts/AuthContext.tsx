@@ -305,12 +305,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: getErrorMessage(error) };
       }
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: "Google login failed" };
+      logError("Google login failed", error);
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 
