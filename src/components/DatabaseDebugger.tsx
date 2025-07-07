@@ -49,24 +49,53 @@ const DatabaseDebugger: React.FC = () => {
 
   const checkStatus = async () => {
     setLoading(true);
-    addLog("Checking database connection...");
+    addLog("Performing comprehensive health check...");
 
     try {
-      const connection = await checkDatabaseConnection();
+      // Perform detailed health check
+      const healthCheck = await performSupabaseHealthCheck();
+
       setStatus({
-        connected: connection.connected,
-        error: connection.error,
-        initialized: connection.connected,
-        userCount: connection.data?.length || 0,
+        connected: healthCheck.connected,
+        error:
+          healthCheck.errors.length > 0
+            ? healthCheck.errors.join("; ")
+            : undefined,
+        initialized: healthCheck.tablesExist,
+        userCount: 0, // Will be updated below if connected
       });
 
-      if (connection.connected) {
+      if (healthCheck.connected) {
         addLog("✅ Database connection successful");
+
+        if (healthCheck.tablesExist) {
+          addLog("✅ All required tables exist");
+        } else {
+          addLog("⚠️ Some tables are missing");
+        }
+
+        // Get user count if connected
+        try {
+          const connection = await checkDatabaseConnection();
+          if (connection.connected && connection.data) {
+            setStatus((prev) => ({
+              ...prev,
+              userCount: connection.data.length,
+            }));
+          }
+        } catch (error) {
+          addLog("Could not get user count");
+        }
       } else {
-        addLog(`❌ Database connection failed: ${connection.error}`);
+        addLog(`❌ Database connection failed`);
+        healthCheck.errors.forEach((error) => addLog(`   ❌ ${error}`));
       }
+
+      // Log warnings and recommendations
+      healthCheck.warnings.forEach((warning) => addLog(`⚠️ ${warning}`));
+      healthCheck.recommendations.forEach((rec) => addLog(`💡 ${rec}`));
     } catch (error) {
-      addLog(`💥 Connection check failed: ${error}`);
+      addLog(`💥 Health check failed: ${error}`);
       setStatus({ connected: false, initialized: false, error: String(error) });
     }
 
