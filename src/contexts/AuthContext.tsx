@@ -188,82 +188,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("🔄 Fetching user profile for:", userId);
 
-      const profilePromise = supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
+      // Try to find mock profile first for faster loading
+      const mockProfile = mockProfiles.find((p) => p.user_id === userId);
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile fetch timeout")), 10000),
-      );
-
-      const { data, error } = (await Promise.race([
-        profilePromise,
-        timeoutPromise,
-      ])) as any;
-
-      if (error && error.code !== "PGRST116") {
-        console.warn("⚠️ Profile fetch error:", error.message);
-
-        // Fall back to mock profile if available
-        const mockProfile = mockProfiles.find((p) => p.user_id === userId);
-        if (mockProfile) {
-          console.log("📝 Using mock profile as fallback");
-          setProfile(mockProfile);
-        }
-        return;
+      // Set mock profile immediately if available, then try to fetch real one
+      if (mockProfile) {
+        console.log("📝 Setting mock profile immediately for user:", userId);
+        setProfile(mockProfile);
       }
 
-      if (data) {
-        console.log("✅ Profile loaded from database");
-        setProfile(data);
-      } else {
+      // Try to fetch from database with shorter timeout (3 seconds)
+      try {
+        const profilePromise = supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .single();
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Profile fetch timeout")), 3000),
+        );
+
+        const { data, error } = (await Promise.race([
+          profilePromise,
+          timeoutPromise,
+        ])) as any;
+
+        if (!error && data) {
+          console.log("✅ Profile loaded from database, updating...");
+          setProfile(data);
+          return;
+        } else if (error && error.code !== "PGRST116") {
+          console.warn("⚠️ Profile fetch error:", error.message);
+        }
+      } catch (fetchError) {
+        console.warn("⚠️ Profile fetch failed:", fetchError.message);
+      }
+
+      // If database fetch failed and we don't have a mock profile, create a default one
+      if (!mockProfile) {
         console.log("🔄 Creating default profile...");
-        // Create default profile
         const defaultProfile = {
+          id: `profile-${userId}`,
           user_id: userId,
+          age: undefined,
+          weight: undefined,
+          height: undefined,
+          blood_type: undefined,
+          medical_conditions: [],
+          medications: [],
+          allergies: [],
+          emergency_contact_name: undefined,
+          emergency_contact_phone: undefined,
           stress_threshold_low: 30,
           stress_threshold_medium: 60,
           stress_threshold_high: 80,
+          preferred_notification_time: undefined,
+          activity_level: undefined,
           sleep_target_hours: 8,
           water_intake_target: 2000,
         };
 
-        try {
-          const { data: newProfile, error: createError } = await supabase
-            .from("user_profiles")
-            .insert(defaultProfile)
-            .select()
-            .single();
-
-          if (!createError && newProfile) {
-            console.log("✅ Default profile created");
-            setProfile(newProfile);
-          } else {
-            console.warn("⚠️ Could not create profile, using mock fallback");
-            const mockProfile = mockProfiles.find((p) => p.user_id === userId);
-            if (mockProfile) {
-              setProfile(mockProfile);
-            }
-          }
-        } catch (createError) {
-          console.warn("⚠️ Profile creation failed:", createError);
-          // Use mock profile as ultimate fallback
-          const mockProfile = mockProfiles.find((p) => p.user_id === userId);
-          if (mockProfile) {
-            setProfile(mockProfile);
-          }
-        }
+        setProfile(defaultProfile);
+        console.log("✅ Default profile created");
       }
     } catch (error) {
       console.error("❌ Profile error:", error);
-      // Use mock profile as fallback
-      const mockProfile = mockProfiles.find((p) => p.user_id === userId);
-      if (mockProfile) {
-        console.log("📝 Using mock profile as error fallback");
-        setProfile(mockProfile);
-      }
+
+      // Always ensure we have some profile, even if it's minimal
+      const fallbackProfile = {
+        id: `profile-${userId}`,
+        user_id: userId,
+        stress_threshold_low: 30,
+        stress_threshold_medium: 60,
+        stress_threshold_high: 80,
+        sleep_target_hours: 8,
+        water_intake_target: 2000,
+      };
+
+      setProfile(fallbackProfile);
+      console.log("📝 Using minimal fallback profile");
     }
   };
 
