@@ -172,7 +172,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(null);
             }
           }
-          setLoading(false);
+
+          // Always clear loading state
+          if (mounted) {
+            setLoading(false);
+          }
         },
       );
       subscription = data.subscription;
