@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 const IntroductionPage: React.FC = () => {
+  const [showDebugger, setShowDebugger] = useState(false);
+
   const teamMembers = [
     {
       name: "Arjun Sharma",
