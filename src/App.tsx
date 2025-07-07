@@ -104,7 +104,7 @@ const CameraPage: React.FC = () => {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="stress-guard-theme">
+    <ThemeProvider>
       <AuthProvider>
         <Router>
           <div className="App">

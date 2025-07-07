@@ -106,7 +106,7 @@ const SettingsPage: React.FC = () => {
 
       if (data) {
         setProfile({
-          full_name: user.user_metadata?.full_name || '',
+          full_name: data.full_name || user.email || '',
           email: user.email || '',
           age: data.age,
           weight: data.weight,
@@ -127,7 +127,7 @@ const SettingsPage: React.FC = () => {
       } else {
         setProfile(prev => ({
           ...prev,
-          full_name: user.user_metadata?.full_name || '',
+          full_name: user.email || '',
           email: user.email || '',
         }));
       }
