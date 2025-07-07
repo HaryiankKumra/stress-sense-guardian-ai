@@ -345,7 +345,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Fallback to mock authentication for testing
       console.log("🔄 Trying mock authentication...");
+      console.log(
+        "🔍 Available mock users:",
+        mockUsers.map((u) => u.email),
+      );
+
       const passwordHash = btoa(password);
+      console.log("🔍 Password hash for comparison:", passwordHash);
+
       const mockUser = mockUsers.find(
         (u) => u.email === email && u.password_hash === passwordHash,
       );
@@ -385,8 +392,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("❌ No matching credentials found");
-      return { success: false, error: "Invalid credentials" };
+      console.log("🔍 Tried email:", email);
+      console.log("🔍 Tried password hash:", passwordHash);
+      return { success: false, error: "Invalid email or password" };
     } catch (error) {
+      console.error("❌ Login error:", error);
       logError("Login failed", error);
       return { success: false, error: getErrorMessage(error) };
     }
