@@ -93,7 +93,7 @@ const DatabaseDebugger: React.FC = () => {
 
       // Log warnings and recommendations
       healthCheck.warnings.forEach((warning) => addLog(`⚠️ ${warning}`));
-      healthCheck.recommendations.forEach((rec) => addLog(`💡 ${rec}`));
+      healthCheck.recommendations.forEach((rec) => addLog(`ℹ️ ${rec}`));
     } catch (error) {
       addLog(`💥 Health check failed: ${error}`);
       setStatus({ connected: false, initialized: false, error: String(error) });
