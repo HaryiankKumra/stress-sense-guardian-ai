@@ -172,7 +172,7 @@ const prediction = gsrModel.predict(data);`}</pre>
 
           <div className="mt-4 p-4 bg-blue-100/50 rounded-lg">
             <p className="text-blue-800 text-sm">
-              <strong>💡 Next Steps:</strong>
+              <strong>Next Steps:</strong>
               1. Export your trained models from Python using{" "}
               <code>tensorflowjs_converter</code>
               <br />
