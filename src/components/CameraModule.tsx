@@ -365,17 +365,9 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-2xl"
                   />
                   <canvas ref={canvasRef} className="hidden" />
-
-                  {/* Live indicator */}
-                  {localCameraActive && (
-                    <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      LIVE
-                    </div>
-                  )}
 
                   {/* Camera Control Button - Adjacent to video */}
                   <div className="absolute top-4 right-4">
