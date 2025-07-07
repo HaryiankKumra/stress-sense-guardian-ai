@@ -33,7 +33,7 @@ const IntroductionPage = () => {
   const teamMembers = [
     {
       name: "Arjun Sharma",
-      role: "ML Engineer",
+      role: "ML Engineer", 
       email: "arjun@stressguard.ai",
       linkedin: "https://linkedin.com/in/arjun-sharma",
       photo:
@@ -42,7 +42,7 @@ const IntroductionPage = () => {
     {
       name: "Priya Patel",
       role: "ML Engineer",
-      email: "priya@stressguard.ai",
+      email: "priya@stressguard.ai", 
       linkedin: "https://linkedin.com/in/priya-patel",
       photo:
         "https://images.unsplash.com/photo-1494790108755-2616b332166c?w=150&h=150&fit=crop&crop=face",
