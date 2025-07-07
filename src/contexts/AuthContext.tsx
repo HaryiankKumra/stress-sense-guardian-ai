@@ -196,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(maxLoadingTimeout);
       if (subscription) {
         try {
           subscription.unsubscribe();
@@ -334,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("✅ Supabase login successful");
           return { success: true };
         } else if (supabaseError) {
-          console.warn("⚠️ Supabase login failed:", supabaseError.message);
+          console.warn("���️ Supabase login failed:", supabaseError.message);
         }
       } catch (error) {
         console.warn("⚠️ Supabase login error:", error.message);
