@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { mockUsers, mockProfiles } from "@/utils/mockAuth";
@@ -33,11 +32,20 @@ interface UserProfile {
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signup: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  updateProfile: (profileData: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (
+    profileData: Partial<UserProfile>,
+  ) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
   loading: boolean;
 }
@@ -53,74 +61,126 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     const initAuth = async () => {
+      console.log("🔄 Initializing authentication...");
+
       try {
         // Check for mock user first (for testing)
         const mockUser = localStorage.getItem("mock_user");
         if (mockUser && mounted) {
           try {
             const userData = JSON.parse(mockUser);
+            console.log("✅ Found mock user in localStorage:", userData.email);
             setUser({
               id: userData.id,
               email: userData.email,
               full_name: userData.full_name,
             });
 
-            const mockProfile = mockProfiles.find(p => p.user_id === userData.id);
+            const mockProfile = mockProfiles.find(
+              (p) => p.user_id === userData.id,
+            );
             if (mockProfile) {
               setProfile(mockProfile);
+              console.log("✅ Loaded mock profile");
             }
-            
+
             if (mounted) setLoading(false);
             return;
           } catch (e) {
+            console.warn("⚠️ Invalid mock user data, removing...");
             localStorage.removeItem("mock_user");
           }
         }
 
-        // Check Supabase session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user && mounted) {
-          const supabaseUser = session.user;
-          setUser({
-            id: supabaseUser.id,
-            email: supabaseUser.email || '',
-            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
-          });
-          await fetchUserProfile(supabaseUser.id);
+        // Test Supabase connection with timeout
+        console.log("🔄 Testing Supabase connection...");
+        const connectionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Connection timeout")), 5000),
+        );
+
+        try {
+          const {
+            data: { session },
+          } = (await Promise.race([connectionPromise, timeoutPromise])) as any;
+
+          if (session?.user && mounted) {
+            console.log("✅ Found Supabase session:", session.user.email);
+            const supabaseUser = session.user;
+            setUser({
+              id: supabaseUser.id,
+              email: supabaseUser.email || "",
+              full_name:
+                supabaseUser.user_metadata?.full_name ||
+                supabaseUser.email ||
+                "",
+            });
+            await fetchUserProfile(supabaseUser.id);
+          } else {
+            console.log("ℹ️ No active Supabase session");
+          }
+        } catch (error) {
+          console.warn("⚠️ Supabase connection failed:", error.message);
+          console.log("📝 Using mock authentication only");
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("❌ Auth initialization error:", error);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          console.log("✅ Auth initialization complete");
+          setLoading(false);
+        }
       }
     };
 
     initAuth();
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        if (session?.user) {
-          const supabaseUser = session.user;
-          setUser({
-            id: supabaseUser.id,
-            email: supabaseUser.email || '',
-            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
-          });
-          await fetchUserProfile(supabaseUser.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        setLoading(false);
-      }
-    );
+    // Listen for auth state changes (with error handling)
+    let subscription: any = null;
+
+    try {
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return;
+
+          console.log("🔄 Auth state change:", event);
+
+          if (session?.user) {
+            const supabaseUser = session.user;
+            setUser({
+              id: supabaseUser.id,
+              email: supabaseUser.email || "",
+              full_name:
+                supabaseUser.user_metadata?.full_name ||
+                supabaseUser.email ||
+                "",
+            });
+            await fetchUserProfile(supabaseUser.id);
+          } else {
+            // Only clear user if not using mock auth
+            const mockUser = localStorage.getItem("mock_user");
+            if (!mockUser) {
+              setUser(null);
+              setProfile(null);
+            }
+          }
+          setLoading(false);
+        },
+      );
+      subscription = data.subscription;
+    } catch (error) {
+      console.warn("⚠️ Could not set up auth state listener:", error);
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.warn("Warning: Could not unsubscribe from auth changes");
+        }
+      }
     };
   }, []);
 
@@ -168,10 +228,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
       });
 
       if (error) {
@@ -187,10 +247,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       // Try Supabase auth first
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: supabaseData, error: supabaseError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (!supabaseError && supabaseData.user) {
         return { success: true };
@@ -201,7 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const mockUser = mockUsers.find(
         (u) => u.email === email && u.password_hash === passwordHash,
       );
-      
+
       if (mockUser) {
         const sessionToken = btoa(mockUser.id + ":" + Date.now());
         localStorage.setItem("session_token", sessionToken);
@@ -229,22 +290,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, fullName: string) => {
     try {
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
+      const { data: supabaseData, error: supabaseError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`
-        }
-      });
+        });
 
       if (!supabaseError && supabaseData.user) {
         return { success: true };
       }
 
-      return { success: false, error: supabaseError?.message || "Signup failed" };
+      return {
+        success: false,
+        error: supabaseError?.message || "Signup failed",
+      };
     } catch (error) {
       return { success: false, error: "Signup failed" };
     }
