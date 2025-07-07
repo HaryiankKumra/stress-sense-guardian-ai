@@ -54,7 +54,7 @@ interface UserProfile {
 }
 
 const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { toast } = useToast();
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [notifications, setNotifications] = useState(true);
