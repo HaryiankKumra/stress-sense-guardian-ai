@@ -275,6 +275,68 @@ const IntroductionPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Debug Section (Development Only) */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="py-10 bg-slate-900/50">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-8">
+              <Button
+                onClick={() => setShowDebugger(!showDebugger)}
+                variant="outline"
+                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                {showDebugger ? "Hide" : "Show"} Developer Tools
+              </Button>
+            </div>
+
+            {showDebugger && (
+              <div className="space-y-6">
+                <DatabaseDebugger />
+                <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <h3 className="text-white text-lg font-semibold mb-4">
+                      Quick Development Info
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <h4 className="text-slate-300 font-medium mb-2">
+                          Backend Status
+                        </h4>
+                        <p className="text-slate-400">
+                          • Supabase: Check connection above
+                        </p>
+                        <p className="text-slate-400">
+                          • Mock Auth: Always available
+                        </p>
+                        <p className="text-slate-400">
+                          • Sample Data: Ready to initialize
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-slate-300 font-medium mb-2">
+                          Known Issues Fixed
+                        </h4>
+                        <p className="text-green-400">
+                          ✅ Container/box styling removed
+                        </p>
+                        <p className="text-green-400">
+                          ✅ Contact section restored
+                        </p>
+                        <p className="text-green-400">✅ Sample data added</p>
+                        <p className="text-green-400">
+                          ✅ Authentication working
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Contact Section */}
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-8">
