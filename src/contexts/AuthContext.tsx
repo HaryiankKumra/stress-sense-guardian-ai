@@ -411,10 +411,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return {
         success: false,
-        error: supabaseError?.message || "Signup failed",
+        error: getErrorMessage(supabaseError) || "Signup failed",
       };
     } catch (error) {
-      return { success: false, error: "Signup failed" };
+      logError("Signup failed", error);
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 
