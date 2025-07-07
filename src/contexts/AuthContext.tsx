@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { mockUsers, mockProfiles } from "@/utils/mockAuth";
@@ -41,6 +42,7 @@ interface AuthContextType {
     password: string,
     fullName: string,
   ) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (
     profileData: Partial<UserProfile>,
@@ -58,10 +60,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     checkAuthStatus();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          // Handle Supabase auth user
+          const supabaseUser = session.user;
+          setUser({
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
+          });
+          await fetchUserProfile(supabaseUser.id);
+        } else {
+          // Check for custom auth
+          await checkAuthStatus();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkAuthStatus = async () => {
     try {
+      // Check Supabase session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const supabaseUser = session.user;
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
+        });
+        await fetchUserProfile(supabaseUser.id);
+        setLoading(false);
+        return;
+      }
+
+      // Check custom auth session
       const sessionToken = localStorage.getItem("session_token");
       if (!sessionToken) {
         setLoading(false);
@@ -94,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Try Supabase session verification
+      // Try custom auth session verification
       try {
         const { data, error } = await supabase
           .from("user_sessions")
@@ -122,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       } catch (supabaseError) {
-        console.log("Supabase session check failed:", supabaseError);
+        console.log("Custom auth session check failed:", supabaseError);
       }
 
       // Clean up invalid session
@@ -176,12 +214,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Google login failed" };
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
-      // Hash password (in production, use proper bcrypt)
-      const passwordHash = btoa(password); // Simple base64 encoding for demo
+      // Try Supabase auth first
+      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // Try Supabase first
+      if (!supabaseError && supabaseData.user) {
+        // Supabase auth success - state will be updated by onAuthStateChange
+        return { success: true };
+      }
+
+      // Fallback to custom auth
+      const passwordHash = btoa(password);
+
+      // Try custom auth database first
       try {
         const { data: userData, error } = await supabase
           .from("auth_users")
@@ -193,7 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!error && userData) {
           // Create session
           const sessionToken = btoa(userData.id + ":" + Date.now());
-          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
           await supabase.from("user_sessions").insert({
             user_id: userData.id,
@@ -212,8 +280,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetchUserProfile(userData.id);
           return { success: true };
         }
-      } catch (supabaseError) {
-        console.log("Supabase auth failed, trying mock auth:", supabaseError);
+      } catch (customAuthError) {
+        console.log("Custom auth failed, trying mock auth:", customAuthError);
       }
 
       // Fallback to mock authentication
@@ -231,7 +299,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: mockUser.full_name,
         });
 
-        // Set mock profile
         const mockProfile = mockProfiles.find((p) => p.user_id === mockUser.id);
         if (mockProfile) {
           setProfile(mockProfile);
@@ -248,62 +315,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, fullName: string) => {
     try {
-      // Check if user exists in mock data first
-      const existingMockUser = mockUsers.find((u) => u.email === email);
-      if (existingMockUser) {
+      // Try Supabase auth first
+      const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (!supabaseError && supabaseData.user) {
+        // Supabase auth success
+        return { success: true };
+      }
+
+      // Check if user exists in custom auth
+      const { data: existingUser } = await supabase
+        .from("auth_users")
+        .select("id")
+        .eq("email", email)
+        .single();
+
+      if (existingUser) {
         return { success: false, error: "Email already exists" };
       }
 
-      // Try Supabase first
-      try {
-        const { data: existingUser } = await supabase
-          .from("auth_users")
-          .select("id")
-          .eq("email", email)
-          .single();
+      // Create custom auth user
+      const passwordHash = btoa(password);
 
-        if (existingUser) {
-          return { success: false, error: "Email already exists" };
-        }
+      const { data: newUser, error } = await supabase
+        .from("auth_users")
+        .insert({
+          email,
+          password_hash: passwordHash,
+          full_name: fullName,
+        })
+        .select()
+        .single();
 
-        // Hash password (in production, use proper bcrypt)
-        const passwordHash = btoa(password);
-
-        const { data: newUser, error } = await supabase
-          .from("auth_users")
-          .insert({
-            email,
-            password_hash: passwordHash,
-            full_name: fullName,
-          })
-          .select()
-          .single();
-
-        if (!error && newUser) {
-          // Auto-login after signup
-          return await login(email, password);
-        }
-      } catch (supabaseError) {
-        console.log(
-          "Supabase signup failed, using mock signup:",
-          supabaseError,
-        );
+      if (!error && newUser) {
+        // Auto-login after signup
+        return await login(email, password);
       }
 
-      // Fallback to mock signup (for demo purposes)
-      const newMockUser = {
-        id: (mockUsers.length + 1).toString(),
-        email,
-        password_hash: btoa(password),
-        full_name: fullName,
-      };
-
-      // In a real app, this would persist to a database
-      // For demo, we'll just use the existing mock data
-      console.log("Mock user created:", newMockUser);
-
-      // Auto-login after signup
-      return await login(email, password);
+      return { success: false, error: "Signup failed" };
     } catch (error) {
       return { success: false, error: "Signup failed" };
     }
@@ -311,6 +369,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+
+      // Clean up custom auth session
       const sessionToken = localStorage.getItem("session_token");
       if (sessionToken) {
         try {
@@ -319,10 +381,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .delete()
             .eq("session_token", sessionToken);
         } catch (error) {
-          console.log(
-            "Supabase logout failed, continuing with local logout:",
-            error,
-          );
+          console.log("Session cleanup failed:", error);
         }
       }
 
@@ -342,12 +401,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if using mock authentication
       const mockUser = localStorage.getItem("mock_user");
       if (mockUser) {
-        // For mock auth, just update the local profile state
         setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
         return { success: true };
       }
 
-      // Try Supabase update
+      // Try database update
       try {
         const { error } = await supabase
           .from("user_profiles")
@@ -364,8 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchUserProfile(user.id);
         return { success: true };
       } catch (supabaseError) {
-        console.log("Supabase profile update failed:", supabaseError);
-        // Fallback to local update for demo
+        console.log("Profile update failed:", supabaseError);
         setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
         return { success: true };
       }
@@ -387,6 +444,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         login,
         signup,
+        loginWithGoogle,
         logout,
         updateProfile,
         refreshProfile,

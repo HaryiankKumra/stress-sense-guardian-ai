@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auth_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          password_hash: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          password_hash: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          password_hash?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       biometric_data_enhanced: {
         Row: {
           combined_prediction: number | null
@@ -66,6 +93,116 @@ export type Database = {
           temp_prediction?: number | null
           temperature?: number
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      chat_history: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          message_type: string
+          metadata: Json | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          message_type: string
+          metadata?: Json | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_messages: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          message: string
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          message: string
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string
+          status?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      health_records: {
+        Row: {
+          condition: string
+          created_at: string | null
+          diagnosis_date: string
+          id: string
+          medications: string[] | null
+          notes: string | null
+          severity: string | null
+          status: string | null
+          symptoms: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          condition: string
+          created_at?: string | null
+          diagnosis_date: string
+          id?: string
+          medications?: string[] | null
+          notes?: string | null
+          severity?: string | null
+          status?: string | null
+          symptoms?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          condition?: string
+          created_at?: string | null
+          diagnosis_date?: string
+          id?: string
+          medications?: string[] | null
+          notes?: string | null
+          severity?: string | null
+          status?: string | null
+          symptoms?: string[] | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -214,6 +351,115 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string[] | null
+          blood_type: string | null
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          height: number | null
+          id: string
+          medical_conditions: string[] | null
+          medications: string[] | null
+          preferred_notification_time: string | null
+          sleep_target_hours: number | null
+          stress_threshold_high: number | null
+          stress_threshold_low: number | null
+          stress_threshold_medium: number | null
+          updated_at: string | null
+          user_id: string | null
+          water_intake_target: number | null
+          weight: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          height?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          preferred_notification_time?: string | null
+          sleep_target_hours?: number | null
+          stress_threshold_high?: number | null
+          stress_threshold_low?: number | null
+          stress_threshold_medium?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          water_intake_target?: number | null
+          weight?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          height?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          preferred_notification_time?: string | null
+          sleep_target_hours?: number | null
+          stress_threshold_high?: number | null
+          stress_threshold_low?: number | null
+          stress_threshold_medium?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          water_intake_target?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          session_token: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          session_token: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          session_token?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
