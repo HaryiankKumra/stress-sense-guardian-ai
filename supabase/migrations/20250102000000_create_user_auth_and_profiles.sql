@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS auth_users (
 -- Create user profiles table for personalization
 CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth_users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES auth_users(id) ON DELETE CASCADE,
   age INTEGER,
   weight DECIMAL(5,2),
   height DECIMAL(5,2),

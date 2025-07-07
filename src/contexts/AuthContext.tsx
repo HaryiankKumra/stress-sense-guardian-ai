@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { mockUsers, mockProfiles } from "@/utils/mockAuth";
+import { getErrorMessage, logError } from "@/utils/errorHandling";
 
 interface User {
   id: string;
@@ -33,11 +32,20 @@ interface UserProfile {
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signup: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  updateProfile: (profileData: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (
+    profileData: Partial<UserProfile>,
+  ) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
   loading: boolean;
 }
@@ -52,96 +60,110 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
-      try {
-        // Check for mock user first (for testing)
-        const mockUser = localStorage.getItem("mock_user");
-        if (mockUser && mounted) {
-          try {
-            const userData = JSON.parse(mockUser);
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              full_name: userData.full_name,
-            });
+    // Safeguard: Force loading to false after 10 seconds maximum
+    const maxLoadingTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn(
+          "⚠️ Maximum loading timeout reached, forcing loading to false",
+        );
+        setLoading(false);
+      }
+    }, 10000);
 
-            const mockProfile = mockProfiles.find(p => p.user_id === userData.id);
-            if (mockProfile) {
-              setProfile(mockProfile);
-            }
-            
-            if (mounted) setLoading(false);
-            return;
-          } catch (e) {
-            localStorage.removeItem("mock_user");
-          }
+    const initAuth = async () => {
+      console.log("🔄 Initializing authentication...");
+
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("❌ Session error:", sessionError);
+          throw sessionError;
         }
 
-        // Check Supabase session
-        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user && mounted) {
+          console.log("✅ Found active session:", session.user.email);
           const supabaseUser = session.user;
           setUser({
             id: supabaseUser.id,
-            email: supabaseUser.email || '',
-            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
+            email: supabaseUser.email || "",
+            full_name:
+              supabaseUser.user_metadata?.full_name || supabaseUser.email || "",
           });
+
+          // Fetch user profile
           await fetchUserProfile(supabaseUser.id);
+        } else {
+          console.log("ℹ️ No active session");
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("❌ Auth initialization error:", error);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          console.log("✅ Auth initialization complete");
+          setLoading(false);
+        }
       }
     };
 
     initAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        if (session?.user) {
-          const supabaseUser = session.user;
-          setUser({
-            id: supabaseUser.id,
-            email: supabaseUser.email || '',
-            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
-          });
-          await fetchUserProfile(supabaseUser.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      console.log("🔄 Auth state change:", event);
+
+      if (session?.user) {
+        const supabaseUser = session.user;
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email || "",
+          full_name:
+            supabaseUser.user_metadata?.full_name || supabaseUser.email || "",
+        });
+
+        // Fetch profile in background
+        fetchUserProfile(supabaseUser.id).catch((error) => {
+          console.warn("⚠️ Auth state profile fetch failed:", error);
+        });
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+
+      // Always clear loading state
+      if (mounted) {
         setLoading(false);
       }
-    );
+    });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      clearTimeout(maxLoadingTimeout);
+      subscription?.unsubscribe();
     };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("🔄 Fetching user profile for:", userId);
+
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", userId)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Profile fetch error:", error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data);
-      } else {
-        // Create default profile
-        const defaultProfile = {
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist, create one
+        console.log("📝 Creating new profile for user:", userId);
+        const newProfile = {
           user_id: userId,
           stress_threshold_low: 30,
           stress_threshold_medium: 60,
@@ -150,145 +172,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           water_intake_target: 2000,
         };
 
-        const { data: newProfile, error: createError } = await supabase
+        const { data: createdProfile, error: createError } = await supabase
           .from("user_profiles")
-          .insert(defaultProfile)
+          .insert([newProfile])
           .select()
           .single();
 
-        if (!createError && newProfile) {
-          setProfile(newProfile);
+        if (createError) {
+          console.error("❌ Failed to create profile:", createError);
+          throw createError;
         }
-      }
-    } catch (error) {
-      console.error("Profile error:", error);
-    }
-  };
 
-  const loginWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
+        setProfile(createdProfile);
+        console.log("✅ Profile created successfully");
+        return;
+      }
 
       if (error) {
-        return { success: false, error: error.message };
+        console.error("❌ Profile fetch error:", error);
+        throw error;
       }
 
-      return { success: true };
+      if (data) {
+        setProfile(data);
+        console.log("✅ Profile loaded successfully");
+      }
     } catch (error) {
-      return { success: false, error: "Google login failed" };
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    try {
-      // Try Supabase auth first
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (!supabaseError && supabaseData.user) {
-        return { success: true };
-      }
-
-      // Fallback to mock authentication for testing
-      const passwordHash = btoa(password);
-      const mockUser = mockUsers.find(
-        (u) => u.email === email && u.password_hash === passwordHash,
-      );
-      
-      if (mockUser) {
-        const sessionToken = btoa(mockUser.id + ":" + Date.now());
-        localStorage.setItem("session_token", sessionToken);
-        localStorage.setItem("mock_user", JSON.stringify(mockUser));
-
-        setUser({
-          id: mockUser.id,
-          email: mockUser.email,
-          full_name: mockUser.full_name,
-        });
-
-        const mockProfile = mockProfiles.find((p) => p.user_id === mockUser.id);
-        if (mockProfile) {
-          setProfile(mockProfile);
-        }
-
-        return { success: true };
-      }
-
-      return { success: false, error: "Invalid credentials" };
-    } catch (error) {
-      return { success: false, error: "Login failed" };
-    }
-  };
-
-  const signup = async (email: string, password: string, fullName: string) => {
-    try {
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-
-      if (!supabaseError && supabaseData.user) {
-        return { success: true };
-      }
-
-      return { success: false, error: supabaseError?.message || "Signup failed" };
-    } catch (error) {
-      return { success: false, error: "Signup failed" };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      localStorage.removeItem("session_token");
-      localStorage.removeItem("mock_user");
-      setUser(null);
-      setProfile(null);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  const updateProfile = async (profileData: Partial<UserProfile>) => {
-    try {
-      if (!user) return { success: false, error: "Not authenticated" };
-
-      // Check if using mock authentication
-      const mockUser = localStorage.getItem("mock_user");
-      if (mockUser) {
-        setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
-        return { success: true };
-      }
-
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
-
-      if (error) {
-        return { success: false, error: "Profile update failed" };
-      }
-
-      await fetchUserProfile(user.id);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: "Profile update failed" };
+      console.error("❌ Failed to fetch/create user profile:", error);
+      logError("Failed to fetch user profile", error);
     }
   };
 
@@ -298,23 +209,142 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        login,
-        signup,
-        loginWithGoogle,
-        logout,
-        updateProfile,
-        refreshProfile,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const login = async (email: string, password: string) => {
+    console.log("🔄 Attempting login for:", email);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("❌ Login failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log("✅ Login successful:", data.user.email);
+        return { success: true };
+      }
+
+      return { success: false, error: "Unknown login error" };
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      logError("Login failed", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  };
+
+  const signup = async (email: string, password: string, fullName: string) => {
+    console.log("🔄 Attempting signup for:", email);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        console.error("❌ Signup failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log("✅ Signup successful:", data.user.email);
+        return { success: true };
+      }
+
+      return { success: false, error: "Unknown signup error" };
+    } catch (error) {
+      console.error("❌ Signup error:", error);
+      logError("Signup failed", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        return { success: false, error: getErrorMessage(error) };
+      }
+
+      return { success: true };
+    } catch (error) {
+      logError("Google login failed", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      console.log("🔄 Logging out...");
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      console.log("✅ Logout successful");
+    } catch (error) {
+      console.error("❌ Logout error:", error);
+    }
+  };
+
+  const updateProfile = async (profileData: Partial<UserProfile>) => {
+    try {
+      if (!user) return { success: false, error: "Not authenticated" };
+
+      console.log("🔄 Updating profile...");
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .update(profileData)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("❌ Profile update failed:", error);
+        return { success: false, error: getErrorMessage(error) };
+      }
+
+      if (data) {
+        setProfile(data);
+        console.log("✅ Profile updated successfully");
+        return { success: true };
+      }
+
+      return { success: false, error: "No data returned" };
+    } catch (error) {
+      console.error("❌ Profile update error:", error);
+      logError("Profile update failed", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    profile,
+    login,
+    signup,
+    loginWithGoogle,
+    logout,
+    updateProfile,
+    refreshProfile,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

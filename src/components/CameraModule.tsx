@@ -243,41 +243,79 @@ const CameraModule: React.FC<CameraModuleProps> = ({
   };
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Camera className="w-5 h-5 text-blue-400" />
-          Facial Emotion Detection
+    <Card className="bg-gradient-to-br from-slate-900/90 via-blue-900/30 to-purple-900/20 border-slate-700/50 backdrop-blur-xl shadow-2xl">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between text-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-xl">
+              <Camera className="w-5 h-5 text-blue-400" />
+            </div>
+            <span className="text-xl font-semibold">Emotion Detection</span>
+          </div>
+          {localCameraActive && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-emerald-400 text-sm font-medium">Live</span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Camera Feed */}
-          <div className="space-y-4">
-            <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Camera Feed - Takes 2 columns */}
+          <div className="xl:col-span-2 space-y-4">
+            <div
+              className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-700/50"
+              style={{ aspectRatio: "16/10" }}
+            >
               {error ? (
-                <div className="flex items-center justify-center h-full text-red-400 p-6">
-                  <div className="text-center space-y-4">
-                    <AlertCircle className="w-12 h-12 mx-auto mb-2" />
-                    <p className="text-sm max-w-md">{error}</p>
+                <div className="flex items-center justify-center h-full p-8">
+                  <div className="text-center space-y-6 max-w-md">
+                    <div className="p-4 bg-red-500/10 rounded-full w-fit mx-auto">
+                      <AlertCircle className="w-12 h-12 text-red-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        Camera Access Required
+                      </h3>
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        {error}
+                      </p>
+                    </div>
 
                     {permissionState === "denied" && (
-                      <div className="space-y-3">
-                        <div className="text-xs text-slate-400 max-w-md">
-                          To enable camera access:
-                          <br />• Click the camera icon in your browser's
-                          address bar
-                          <br />• Or go to Settings → Privacy & Security →
-                          Camera
-                          <br />• Allow camera access for this site
+                      <div className="space-y-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div className="text-xs text-slate-300">
+                          <div className="font-medium mb-2">
+                            To enable camera access:
+                          </div>
+                          <ul className="space-y-1 text-slate-400">
+                            <li>
+                              • Click the camera icon in your browser's address
+                              bar
+                            </li>
+                            <li>
+                              • Or go to Settings → Privacy & Security → Camera
+                            </li>
+                            <li>• Allow camera access for this site</li>
+                          </ul>
                         </div>
                         <Button
                           onClick={startCamera}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                          size="sm"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg"
                           disabled={isLoading}
                         >
-                          {isLoading ? "Requesting..." : "Try Again"}
+                          {isLoading ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Requesting...
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Try Again
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
@@ -285,22 +323,39 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                     {permissionState === "prompt" && (
                       <Button
                         onClick={startCamera}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
+                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg"
                         disabled={isLoading}
                       >
-                        {isLoading
-                          ? "Requesting..."
-                          : "Grant Camera Permission"}
+                        {isLoading ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Requesting...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-4 h-4 mr-2" />
+                            Grant Camera Permission
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
                 </div>
               ) : isLoading ? (
-                <div className="flex items-center justify-center h-full text-blue-400">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p>Requesting camera access...</p>
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center space-y-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-blue-500/20 rounded-full"></div>
+                      <div className="absolute inset-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <div>
+                      <p className="text-blue-400 font-medium">
+                        Initializing Camera
+                      </p>
+                      <p className="text-slate-400 text-sm">
+                        Please allow camera access when prompted
+                      </p>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -310,23 +365,19 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-2xl"
                   />
                   <canvas ref={canvasRef} className="hidden" />
 
-                  {/* Live indicator */}
-                  {localCameraActive && (
-                    <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      LIVE
-                    </div>
-                  )}
-
-                  {/* Camera Control Button - Adjacent to video */}
+                  {/* Camera Control Button */}
                   <div className="absolute top-4 right-4">
                     <Button
                       onClick={toggleCamera}
-                      className={`${localCameraActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white`}
+                      className={`${
+                        localCameraActive
+                          ? "bg-red-500/80 hover:bg-red-600 border-red-400/50"
+                          : "bg-emerald-500/80 hover:bg-emerald-600 border-emerald-400/50"
+                      } text-white backdrop-blur-sm border shadow-lg`}
                       size="sm"
                       disabled={isLoading}
                     >
@@ -343,12 +394,20 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                   {/* Current emotion overlay */}
                   {isProcessing && localCameraActive && (
                     <div className="absolute bottom-4 left-4 right-4">
-                      <Badge
-                        className={`${getEmotionColor(currentEmotion)} text-lg py-2 px-4 w-full justify-center border`}
-                      >
-                        {currentEmotion.toUpperCase()} (
-                        {(confidence * 100).toFixed(1)}%)
-                      </Badge>
+                      <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white text-sm font-medium">
+                            Detected:
+                          </span>
+                          <Badge
+                            className={`${getEmotionColor(currentEmotion)} border font-medium`}
+                          >
+                            {currentEmotion.charAt(0).toUpperCase() +
+                              currentEmotion.slice(1)}{" "}
+                            ({(confidence * 100).toFixed(1)}%)
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>
@@ -356,65 +415,103 @@ const CameraModule: React.FC<CameraModuleProps> = ({
             </div>
           </div>
 
-          {/* Emotion Analysis */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
-                <Eye className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-                <div className="text-2xl font-bold text-white">
-                  {isProcessing && localCameraActive ? "Active" : "Inactive"}
+          {/* Emotion Analysis Panel */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Status Cards */}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Eye className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">
+                      {isProcessing && localCameraActive
+                        ? "Active"
+                        : "Inactive"}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      Detection Status
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-slate-400">Detection Status</div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      isProcessing && localCameraActive
+                        ? "bg-gradient-to-r from-emerald-500 to-green-500 w-full"
+                        : "bg-slate-600 w-0"
+                    }`}
+                  />
+                </div>
               </div>
 
-              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
-                <div className="text-2xl font-bold text-white">
-                  {(confidence * 100).toFixed(1)}%
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-300 text-sm">
+                    Confidence Level
+                  </span>
+                  <span className="text-2xl font-bold text-white">
+                    {(confidence * 100).toFixed(0)}%
+                  </span>
                 </div>
-                <div className="text-sm text-slate-400">Confidence</div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                    style={{ width: `${confidence * 100}%` }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg text-white">
-                Current Analysis
+            {/* Current Analysis */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-5 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+              <h3 className="font-semibold text-lg text-white mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                Live Analysis
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Dominant Emotion:</span>
+                  <span className="text-slate-300 text-sm">
+                    Primary Emotion
+                  </span>
                   <Badge
-                    className={`${getEmotionColor(currentEmotion)} border`}
+                    className={`${getEmotionColor(currentEmotion)} border font-medium`}
                   >
-                    {currentEmotion}
+                    {currentEmotion.charAt(0).toUpperCase() +
+                      currentEmotion.slice(1)}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Stress Indicator:</span>
+                  <span className="text-slate-300 text-sm">Stress Level</span>
                   <Badge
                     className={
                       currentEmotion === "angry" || currentEmotion === "fearful"
                         ? "bg-red-500/20 text-red-400 border-red-500/30"
                         : currentEmotion === "sad"
                           ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                          : "bg-green-500/20 text-green-400 border-green-500/30"
+                          : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                     }
                   >
                     {currentEmotion === "angry" || currentEmotion === "fearful"
-                      ? "High"
+                      ? "High Risk"
                       : currentEmotion === "sad"
-                        ? "Medium"
-                        : "Low"}
+                        ? "Moderate"
+                        : "Low Risk"}
                   </Badge>
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/30">
-              <p className="text-blue-400 text-sm">
-                <strong>💡 TensorFlow.js Integration:</strong>
-                Place your facial emotion detection model files in{" "}
-                <code className="text-purple-400">/public/models/facial/</code>
-                and update the model loading logic in this component.
+            {/* Info Panel */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4 rounded-xl border border-blue-500/20 backdrop-blur-sm">
+              <p className="text-blue-400 text-sm leading-relaxed">
+                <strong>AI Model Integration:</strong> This module uses
+                simulated emotion detection. Integrate TensorFlow.js models in{" "}
+                <code className="text-purple-400 bg-slate-800/50 px-1 rounded">
+                  /public/models/
+                </code>
+                for real-time facial emotion analysis.
               </p>
             </div>
           </div>

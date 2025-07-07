@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,12 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Heart, 
-  Thermometer, 
-  Zap, 
-  Activity, 
-  TrendingUp, 
+import {
+  Heart,
+  Thermometer,
+  Zap,
+  Activity,
+  TrendingUp,
   TrendingDown,
   AlertTriangle,
   Calendar,
@@ -20,12 +19,13 @@ import {
   User,
   Calculator,
   Droplets,
-  Moon
+  Moon,
 } from "lucide-react";
-import StressMetrics from '@/components/StressMetrics';
-import CameraModule from '@/components/CameraModule';
-import StressChatbot from '@/components/StressChatbot';
-import ESP32StatusCard from '@/components/ESP32StatusCard';
+import StressMetrics from "@/components/StressMetrics";
+import CameraModule from "@/components/CameraModule";
+import StressChatbot from "@/components/StressChatbot";
+import ESP32StatusCard from "@/components/ESP32StatusCard";
+import ConfigurationStatus from "@/components/ConfigurationStatus";
 
 interface BiometricData {
   heart_rate: number;
@@ -50,21 +50,23 @@ const StressDashboard: React.FC = () => {
   const [currentData, setCurrentData] = useState<BiometricData | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [stressLevel, setStressLevel] = useState(0.3);
-  const [stressStatus, setStressStatus] = useState<'low' | 'moderate' | 'high'>('low');
+  const [stressStatus, setStressStatus] = useState<"low" | "moderate" | "high">(
+    "low",
+  );
   const [isMonitoring, setIsMonitoring] = useState(true);
   const [esp32Status, setEsp32Status] = useState({
     connected: true,
-    deviceId: 'ESP32_001',
+    deviceId: "ESP32_001",
     lastSeen: new Date(),
     sensorsActive: 3,
-    i2cEnabled: true
+    i2cEnabled: true,
   });
 
   const signalQuality = {
     bvp: 92,
     eda: 88,
     temp: 95,
-    hr: 91
+    hr: 91,
   };
 
   useEffect(() => {
@@ -81,25 +83,25 @@ const StressDashboard: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('weight, height, age, sleep_target_hours, water_intake_target')
-        .eq('user_id', user.id)
+        .from("user_profiles")
+        .select("weight, height, age, sleep_target_hours, water_intake_target")
+        .eq("user_id", user.id)
         .single();
 
       if (data) {
         setUserProfile(data);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     }
   };
 
   const fetchLatestData = async () => {
     try {
       const { data, error } = await supabase
-        .from('biometric_data_enhanced')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("biometric_data_enhanced")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
@@ -107,13 +109,13 @@ const StressDashboard: React.FC = () => {
         setCurrentData(data);
         const stress = data.stress_score ? data.stress_score / 100 : 0.3;
         setStressLevel(stress);
-        
-        if (stress < 0.4) setStressStatus('low');
-        else if (stress < 0.7) setStressStatus('moderate');
-        else setStressStatus('high');
+
+        if (stress < 0.4) setStressStatus("low");
+        else if (stress < 0.7) setStressStatus("moderate");
+        else setStressStatus("high");
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -126,14 +128,14 @@ const StressDashboard: React.FC = () => {
   };
 
   const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return { category: 'Underweight', color: 'text-blue-400' };
-    if (bmi < 25) return { category: 'Normal', color: 'text-green-400' };
-    if (bmi < 30) return { category: 'Overweight', color: 'text-yellow-400' };
-    return { category: 'Obese', color: 'text-red-400' };
+    if (bmi < 18.5) return { category: "Underweight", color: "text-blue-400" };
+    if (bmi < 25) return { category: "Normal", color: "text-green-400" };
+    if (bmi < 30) return { category: "Overweight", color: "text-yellow-400" };
+    return { category: "Obese", color: "text-red-400" };
   };
 
   const handleEmotionDetected = (emotion: string, confidence: number) => {
-    console.log('Emotion detected:', emotion, confidence);
+    console.log("Emotion detected:", emotion, confidence);
   };
 
   const bmi = calculateBMI();
@@ -148,20 +150,25 @@ const StressDashboard: React.FC = () => {
             <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
             <p className="text-slate-300 flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Last updated: {currentData ? new Date(currentData.timestamp).toLocaleTimeString() : 'Never'}
+              Last updated:{" "}
+              {currentData
+                ? new Date(currentData.timestamp).toLocaleTimeString()
+                : "Never"}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <Badge className={`px-3 py-1 ${isMonitoring ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
-              {isMonitoring ? '🟢 Live Monitoring' : '🔴 Monitoring Stopped'}
+            <Badge
+              className={`px-3 py-1 ${isMonitoring ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}`}
+            >
+              {isMonitoring ? "🟢 Live Monitoring" : "🔴 Monitoring Stopped"}
             </Badge>
             <Button
               onClick={() => setIsMonitoring(!isMonitoring)}
               variant={isMonitoring ? "destructive" : "default"}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
             >
-              {isMonitoring ? 'Stop' : 'Start'} Monitoring
+              {isMonitoring ? "Stop" : "Start"} Monitoring
             </Button>
           </div>
         </div>
@@ -201,9 +208,9 @@ const StressDashboard: React.FC = () => {
                       fill="none"
                       className="animate-pulse"
                       style={{
-                        strokeDasharray: '100',
-                        strokeDashoffset: '100',
-                        animation: 'dash 2s linear infinite'
+                        strokeDasharray: "100",
+                        strokeDashoffset: "100",
+                        animation: "dash 2s linear infinite",
                       }}
                     />
                   </svg>
@@ -254,12 +261,16 @@ const StressDashboard: React.FC = () => {
               {bmi ? (
                 <div>
                   <div className="text-2xl font-bold text-white">{bmi}</div>
-                  <div className={`text-xs ${bmiData?.color}`}>{bmiData?.category}</div>
+                  <div className={`text-xs ${bmiData?.color}`}>
+                    {bmiData?.category}
+                  </div>
                 </div>
               ) : (
                 <div>
                   <div className="text-lg text-slate-400">--</div>
-                  <div className="text-xs text-slate-500">Set height & weight</div>
+                  <div className="text-xs text-slate-500">
+                    Set height & weight
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -281,7 +292,9 @@ const StressDashboard: React.FC = () => {
                   {userProfile.sleep_target_hours || 8} hours
                 </div>
                 <Progress value={75} className="mt-2" />
-                <div className="text-xs text-slate-400 mt-1">6/8 hours today</div>
+                <div className="text-xs text-slate-400 mt-1">
+                  6/8 hours today
+                </div>
               </CardContent>
             </Card>
 
@@ -297,7 +310,9 @@ const StressDashboard: React.FC = () => {
                   {userProfile.water_intake_target || 2000} ml
                 </div>
                 <Progress value={60} className="mt-2" />
-                <div className="text-xs text-slate-400 mt-1">1200/2000 ml today</div>
+                <div className="text-xs text-slate-400 mt-1">
+                  1200/2000 ml today
+                </div>
               </CardContent>
             </Card>
 
@@ -311,7 +326,9 @@ const StressDashboard: React.FC = () => {
               <CardContent>
                 <div className="text-xl font-bold text-white">45 min</div>
                 <Progress value={90} className="mt-2" />
-                <div className="text-xs text-slate-400 mt-1">45/50 min today</div>
+                <div className="text-xs text-slate-400 mt-1">
+                  45/50 min today
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -339,19 +356,29 @@ const StressDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Chatbot */}
-        <StressChatbot />
+        {/* Configuration Status & Chatbot */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-1">
+            <ConfigurationStatus />
+          </div>
+          <div className="xl:col-span-2">
+            <StressChatbot />
+          </div>
+        </div>
 
         {/* Stress Notifications */}
-        {stressStatus === 'high' && (
+        {stressStatus === "high" && (
           <Card className="bg-red-500/10 border-red-500/30 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-6 h-6 text-red-400" />
                 <div>
-                  <h3 className="font-semibold text-red-400">High Stress Detected</h3>
+                  <h3 className="font-semibold text-red-400">
+                    High Stress Detected
+                  </h3>
                   <p className="text-red-300 text-sm">
-                    Your stress levels are elevated. Consider taking a break and trying some relaxation techniques.
+                    Your stress levels are elevated. Consider taking a break and
+                    trying some relaxation techniques.
                   </p>
                 </div>
               </div>
@@ -361,8 +388,9 @@ const StressDashboard: React.FC = () => {
       </div>
 
       {/* CSS for ECG Animation */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
           @keyframes dash {
             0% {
               stroke-dashoffset: 100;
@@ -371,8 +399,9 @@ const StressDashboard: React.FC = () => {
               stroke-dashoffset: -100;
             }
           }
-        `
-      }} />
+        `,
+        }}
+      />
     </div>
   );
 };

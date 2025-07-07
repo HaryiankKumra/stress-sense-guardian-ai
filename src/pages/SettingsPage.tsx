@@ -1,30 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  User, 
-  Mail, 
-  MapPin, 
-  Heart, 
-  Ruler, 
-  Weight, 
-  Droplets, 
-  Moon, 
-  Sun, 
-  Bell, 
+import {
+  getErrorMessage,
+  logError,
+  createUserErrorMessage,
+} from "@/utils/errorHandling";
+import {
+  User,
+  Mail,
+  MapPin,
+  Heart,
+  Ruler,
+  Weight,
+  Droplets,
+  Moon,
+  Sun,
+  Bell,
   BellOff,
   Save,
   Calculator,
-  Activity
+  Activity,
 } from "lucide-react";
 
 interface UserProfile {
@@ -48,14 +59,14 @@ interface UserProfile {
 }
 
 const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { toast } = useToast();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [notifications, setNotifications] = useState(true);
   const [stressNotifications, setStressNotifications] = useState(true);
   const [profile, setProfile] = useState<UserProfile>({
-    full_name: '',
-    email: '',
+    full_name: "",
+    email: "",
     age: null,
     weight: null,
     height: null,
@@ -73,13 +84,13 @@ const SettingsPage: React.FC = () => {
     stress_threshold_high: 80,
   });
 
-  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
   const activityLevels = [
-    { value: 'sedentary', label: 'Sedentary' },
-    { value: 'lightly_active', label: 'Lightly Active' },
-    { value: 'moderately_active', label: 'Moderately Active' },
-    { value: 'very_active', label: 'Very Active' },
-    { value: 'extremely_active', label: 'Extremely Active' }
+    { value: "sedentary", label: "Sedentary" },
+    { value: "lightly_active", label: "Lightly Active" },
+    { value: "moderately_active", label: "Moderately Active" },
+    { value: "very_active", label: "Very Active" },
+    { value: "extremely_active", label: "Extremely Active" },
   ];
 
   useEffect(() => {
@@ -93,20 +104,20 @@ const SettingsPage: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching profile:", error);
         return;
       }
 
       if (data) {
         setProfile({
-          full_name: user.email || '', // Use email as fallback since full_name doesn't exist in user_profiles
-          email: user.email || '',
+          full_name: user.email || "", // Use email as fallback since full_name doesn't exist in user_profiles
+          email: user.email || "",
           age: data.age,
           weight: data.weight,
           height: data.height,
@@ -124,14 +135,14 @@ const SettingsPage: React.FC = () => {
           stress_threshold_high: data.stress_threshold_high,
         });
       } else {
-        setProfile(prev => ({
+        setProfile((prev) => ({
           ...prev,
-          full_name: user.email || '',
-          email: user.email || '',
+          full_name: user.email || "",
+          email: user.email || "",
         }));
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     }
   };
 
@@ -144,48 +155,67 @@ const SettingsPage: React.FC = () => {
   };
 
   const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return { category: 'Underweight', color: 'text-blue-400' };
-    if (bmi < 25) return { category: 'Normal', color: 'text-green-400' };
-    if (bmi < 30) return { category: 'Overweight', color: 'text-yellow-400' };
-    return { category: 'Obese', color: 'text-red-400' };
+    if (bmi < 18.5) return { category: "Underweight", color: "text-blue-400" };
+    if (bmi < 25) return { category: "Normal", color: "text-green-400" };
+    if (bmi < 30) return { category: "Overweight", color: "text-yellow-400" };
+    return { category: "Obese", color: "text-red-400" };
   };
 
   const saveProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          age: profile.age,
-          weight: profile.weight,
-          height: profile.height,
-          blood_type: profile.blood_type,
-          medical_conditions: profile.medical_conditions,
-          medications: profile.medications,
-          allergies: profile.allergies,
-          emergency_contact_name: profile.emergency_contact_name,
-          emergency_contact_phone: profile.emergency_contact_phone,
-          activity_level: profile.activity_level,
-          sleep_target_hours: profile.sleep_target_hours,
-          water_intake_target: profile.water_intake_target,
-          stress_threshold_low: profile.stress_threshold_low,
-          stress_threshold_medium: profile.stress_threshold_medium,
-          stress_threshold_high: profile.stress_threshold_high,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Settings Saved",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error) {
-      console.error('Error saving profile:', error);
+    if (!user) {
       toast({
         title: "Error",
-        description: "Failed to save settings. Please try again.",
+        description: "Not authenticated. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("🔄 Saving profile...");
+
+      // Use the AuthContext updateProfile function for better consistency
+      const result = await updateProfile({
+        age: profile.age,
+        weight: profile.weight,
+        height: profile.height,
+        blood_type: profile.blood_type,
+        medical_conditions: profile.medical_conditions,
+        medications: profile.medications,
+        allergies: profile.allergies,
+        emergency_contact_name: profile.emergency_contact_name,
+        emergency_contact_phone: profile.emergency_contact_phone,
+        activity_level: profile.activity_level,
+        sleep_target_hours: profile.sleep_target_hours,
+        water_intake_target: profile.water_intake_target,
+        stress_threshold_low: profile.stress_threshold_low,
+        stress_threshold_medium: profile.stress_threshold_medium,
+        stress_threshold_high: profile.stress_threshold_high,
+      });
+
+      if (result.success) {
+        console.log("✅ Profile saved successfully");
+        toast({
+          title: "Settings Saved",
+          description: "Your profile has been updated successfully.",
+        });
+      } else {
+        logError("Profile save failed", result.error);
+        toast({
+          title: "Error",
+          description: createUserErrorMessage(
+            result.error,
+            "Failed to save settings",
+          ),
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      logError("Error saving profile", error);
+
+      toast({
+        title: "Error",
+        description: createUserErrorMessage(error, "Failed to save settings"),
         variant: "destructive",
       });
     }
@@ -204,10 +234,30 @@ const SettingsPage: React.FC = () => {
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="bg-slate-800/50 border-slate-700">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-blue-600">Profile</TabsTrigger>
-            <TabsTrigger value="health" className="data-[state=active]:bg-blue-600">Health</TabsTrigger>
-            <TabsTrigger value="preferences" className="data-[state=active]:bg-blue-600">Preferences</TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-600">Notifications</TabsTrigger>
+            <TabsTrigger
+              value="profile"
+              className="data-[state=active]:bg-blue-600"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger
+              value="health"
+              className="data-[state=active]:bg-blue-600"
+            >
+              Health
+            </TabsTrigger>
+            <TabsTrigger
+              value="preferences"
+              className="data-[state=active]:bg-blue-600"
+            >
+              Preferences
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="data-[state=active]:bg-blue-600"
+            >
+              Notifications
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -221,17 +271,26 @@ const SettingsPage: React.FC = () => {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-slate-300">Full Name</Label>
+                    <Label htmlFor="name" className="text-slate-300">
+                      Full Name
+                    </Label>
                     <Input
                       id="name"
                       value={profile.full_name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
+                      onChange={(e) =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          full_name: e.target.value,
+                        }))
+                      }
                       className="bg-slate-700/50 border-slate-600 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-300">Email</Label>
+                    <Label htmlFor="email" className="text-slate-300">
+                      Email
+                    </Label>
                     <Input
                       id="email"
                       type="email"
@@ -242,46 +301,76 @@ const SettingsPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="age" className="text-slate-300">Age</Label>
+                    <Label htmlFor="age" className="text-slate-300">
+                      Age
+                    </Label>
                     <Input
                       id="age"
                       type="number"
-                      value={profile.age || ''}
-                      onChange={(e) => setProfile(prev => ({ ...prev, age: parseInt(e.target.value) || null }))}
+                      value={profile.age || ""}
+                      onChange={(e) =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          age: parseInt(e.target.value) || null,
+                        }))
+                      }
                       className="bg-slate-700/50 border-slate-600 text-white"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="blood_type" className="text-slate-300">Blood Type</Label>
-                    <Select value={profile.blood_type || ''} onValueChange={(value) => setProfile(prev => ({ ...prev, blood_type: value }))}>
+                    <Label htmlFor="blood_type" className="text-slate-300">
+                      Blood Type
+                    </Label>
+                    <Select
+                      value={profile.blood_type || ""}
+                      onValueChange={(value) =>
+                        setProfile((prev) => ({ ...prev, blood_type: value }))
+                      }
+                    >
                       <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                         <SelectValue placeholder="Select blood type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {bloodTypes.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        {bloodTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="emergency_name" className="text-slate-300">Emergency Contact Name</Label>
+                    <Label htmlFor="emergency_name" className="text-slate-300">
+                      Emergency Contact Name
+                    </Label>
                     <Input
                       id="emergency_name"
-                      value={profile.emergency_contact_name || ''}
-                      onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                      value={profile.emergency_contact_name || ""}
+                      onChange={(e) =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          emergency_contact_name: e.target.value,
+                        }))
+                      }
                       className="bg-slate-700/50 border-slate-600 text-white"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="emergency_phone" className="text-slate-300">Emergency Contact Phone</Label>
+                    <Label htmlFor="emergency_phone" className="text-slate-300">
+                      Emergency Contact Phone
+                    </Label>
                     <Input
                       id="emergency_phone"
-                      value={profile.emergency_contact_phone || ''}
-                      onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                      value={profile.emergency_contact_phone || ""}
+                      onChange={(e) =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          emergency_contact_phone: e.target.value,
+                        }))
+                      }
                       className="bg-slate-700/50 border-slate-600 text-white"
                     />
                   </div>
@@ -302,29 +391,45 @@ const SettingsPage: React.FC = () => {
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="height" className="text-slate-300 flex items-center gap-2">
+                      <Label
+                        htmlFor="height"
+                        className="text-slate-300 flex items-center gap-2"
+                      >
                         <Ruler className="w-4 h-4" />
                         Height (cm)
                       </Label>
                       <Input
                         id="height"
                         type="number"
-                        value={profile.height || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, height: parseFloat(e.target.value) || null }))}
+                        value={profile.height || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            height: parseFloat(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="weight" className="text-slate-300 flex items-center gap-2">
+                      <Label
+                        htmlFor="weight"
+                        className="text-slate-300 flex items-center gap-2"
+                      >
                         <Weight className="w-4 h-4" />
                         Weight (kg)
                       </Label>
                       <Input
                         id="weight"
                         type="number"
-                        value={profile.weight || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, weight: parseFloat(e.target.value) || null }))}
+                        value={profile.weight || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            weight: parseFloat(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
@@ -337,13 +442,19 @@ const SettingsPage: React.FC = () => {
                       <div className="p-3 bg-slate-700/50 border border-slate-600 rounded-md">
                         {bmi ? (
                           <div className="text-center">
-                            <div className="text-2xl font-bold text-white">{bmi}</div>
-                            <Badge className={`${bmiData?.color} bg-transparent border-current`}>
+                            <div className="text-2xl font-bold text-white">
+                              {bmi}
+                            </div>
+                            <Badge
+                              className={`${bmiData?.color} bg-transparent border-current`}
+                            >
                               {bmiData?.category}
                             </Badge>
                           </div>
                         ) : (
-                          <div className="text-slate-400 text-center">Enter height & weight</div>
+                          <div className="text-slate-400 text-center">
+                            Enter height & weight
+                          </div>
                         )}
                       </div>
                     </div>
@@ -351,13 +462,23 @@ const SettingsPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label className="text-slate-300">Activity Level</Label>
-                    <Select value={profile.activity_level || ''} onValueChange={(value) => setProfile(prev => ({ ...prev, activity_level: value }))}>
+                    <Select
+                      value={profile.activity_level || ""}
+                      onValueChange={(value) =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          activity_level: value,
+                        }))
+                      }
+                    >
                       <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                         <SelectValue placeholder="Select activity level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {activityLevels.map(level => (
-                          <SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>
+                        {activityLevels.map((level) => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -375,29 +496,47 @@ const SettingsPage: React.FC = () => {
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="sleep" className="text-slate-300 flex items-center gap-2">
+                      <Label
+                        htmlFor="sleep"
+                        className="text-slate-300 flex items-center gap-2"
+                      >
                         <Moon className="w-4 h-4" />
                         Sleep Target (hours)
                       </Label>
                       <Input
                         id="sleep"
                         type="number"
-                        value={profile.sleep_target_hours || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, sleep_target_hours: parseInt(e.target.value) || null }))}
+                        value={profile.sleep_target_hours || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            sleep_target_hours:
+                              parseInt(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="water" className="text-slate-300 flex items-center gap-2">
+                      <Label
+                        htmlFor="water"
+                        className="text-slate-300 flex items-center gap-2"
+                      >
                         <Droplets className="w-4 h-4" />
                         Water Intake Target (ml)
                       </Label>
                       <Input
                         id="water"
                         type="number"
-                        value={profile.water_intake_target || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, water_intake_target: parseInt(e.target.value) || null }))}
+                        value={profile.water_intake_target || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            water_intake_target:
+                              parseInt(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
@@ -410,41 +549,67 @@ const SettingsPage: React.FC = () => {
           <TabsContent value="preferences">
             <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white">Appearance & Preferences</CardTitle>
+                <CardTitle className="text-white">
+                  Appearance & Preferences
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {theme === 'dark' ? <Moon className="w-5 h-5 text-slate-300" /> : <Sun className="w-5 h-5 text-slate-300" />}
+                    {theme === "dark" ? (
+                      <Moon className="w-5 h-5 text-slate-300" />
+                    ) : (
+                      <Sun className="w-5 h-5 text-slate-300" />
+                    )}
                     <div>
                       <Label className="text-slate-300">Theme</Label>
-                      <p className="text-sm text-slate-400">Choose your preferred theme</p>
+                      <p className="text-sm text-slate-400">
+                        Choose your preferred theme
+                      </p>
                     </div>
                   </div>
                   <Switch
-                    checked={theme === 'dark'}
-                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    checked={theme === "dark"}
+                    onCheckedChange={(checked) =>
+                      setTheme(checked ? "dark" : "light")
+                    }
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-slate-300">Stress Detection Thresholds</Label>
+                  <Label className="text-slate-300">
+                    Stress Detection Thresholds
+                  </Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-green-400">Low Threshold</Label>
                       <Input
                         type="number"
-                        value={profile.stress_threshold_low || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, stress_threshold_low: parseInt(e.target.value) || null }))}
+                        value={profile.stress_threshold_low || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            stress_threshold_low:
+                              parseInt(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-yellow-400">Medium Threshold</Label>
+                      <Label className="text-yellow-400">
+                        Medium Threshold
+                      </Label>
                       <Input
                         type="number"
-                        value={profile.stress_threshold_medium || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, stress_threshold_medium: parseInt(e.target.value) || null }))}
+                        value={profile.stress_threshold_medium || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            stress_threshold_medium:
+                              parseInt(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
@@ -452,8 +617,14 @@ const SettingsPage: React.FC = () => {
                       <Label className="text-red-400">High Threshold</Label>
                       <Input
                         type="number"
-                        value={profile.stress_threshold_high || ''}
-                        onChange={(e) => setProfile(prev => ({ ...prev, stress_threshold_high: parseInt(e.target.value) || null }))}
+                        value={profile.stress_threshold_high || ""}
+                        onChange={(e) =>
+                          setProfile((prev) => ({
+                            ...prev,
+                            stress_threshold_high:
+                              parseInt(e.target.value) || null,
+                          }))
+                        }
                         className="bg-slate-700/50 border-slate-600 text-white"
                       />
                     </div>
@@ -474,10 +645,18 @@ const SettingsPage: React.FC = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {notifications ? <Bell className="w-5 h-5 text-slate-300" /> : <BellOff className="w-5 h-5 text-slate-300" />}
+                    {notifications ? (
+                      <Bell className="w-5 h-5 text-slate-300" />
+                    ) : (
+                      <BellOff className="w-5 h-5 text-slate-300" />
+                    )}
                     <div>
-                      <Label className="text-slate-300">General Notifications</Label>
-                      <p className="text-sm text-slate-400">Receive general app notifications</p>
+                      <Label className="text-slate-300">
+                        General Notifications
+                      </Label>
+                      <p className="text-sm text-slate-400">
+                        Receive general app notifications
+                      </p>
                     </div>
                   </div>
                   <Switch
@@ -491,7 +670,9 @@ const SettingsPage: React.FC = () => {
                     <Heart className="w-5 h-5 text-red-400" />
                     <div>
                       <Label className="text-slate-300">Stress Alerts</Label>
-                      <p className="text-sm text-slate-400">Get notified when high stress is detected</p>
+                      <p className="text-sm text-slate-400">
+                        Get notified when high stress is detected
+                      </p>
                     </div>
                   </div>
                   <Switch
@@ -505,7 +686,7 @@ const SettingsPage: React.FC = () => {
         </Tabs>
 
         <div className="flex justify-end">
-          <Button 
+          <Button
             onClick={saveProfile}
             className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-2"
           >

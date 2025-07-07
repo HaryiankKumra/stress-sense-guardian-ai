@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +10,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Monitor, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Monitor,
+  Eye,
+  EyeOff,
+  Loader2,
+  Wifi,
+  WifiOff,
+  AlertCircle,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { TestCredentials } from "@/components/TestCredentials";
+import { quickConnectionTest } from "@/utils/supabaseHealthCheck";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,9 +31,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "checking" | "connected" | "disconnected"
+  >("checking");
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
   const { toast } = useToast();
+
+  // Check connection status on load
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const isConnected = await quickConnectionTest();
+        setConnectionStatus(isConnected ? "connected" : "disconnected");
+      } catch {
+        setConnectionStatus("disconnected");
+      }
+    };
+
+    checkConnection();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,11 +104,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleFillCredentials = (email: string, password: string) => {
-    setEmail(email);
-    setPassword(password);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-slate-50 dark:from-slate-900 dark:via-sky-900 dark:to-slate-900 flex items-center justify-center p-6">
       <div className="absolute top-6 right-6">
@@ -109,6 +129,31 @@ export default function LoginPage() {
             <CardDescription className="text-slate-600 dark:text-slate-300">
               Sign in to access your stress monitoring dashboard
             </CardDescription>
+
+            {/* Connection Status */}
+            <div className="flex justify-center mt-3">
+              {connectionStatus === "checking" && (
+                <Badge variant="outline" className="text-xs">
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Checking connection...
+                </Badge>
+              )}
+              {connectionStatus === "connected" && (
+                <Badge variant="default" className="text-xs bg-green-500">
+                  <Wifi className="w-3 h-3 mr-1" />
+                  Database connected
+                </Badge>
+              )}
+              {connectionStatus === "disconnected" && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs bg-orange-500 text-white"
+                >
+                  <WifiOff className="w-3 h-3 mr-1" />
+                  Using offline mode
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
@@ -169,10 +214,19 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
+                    {connectionStatus === "connected"
+                      ? "Authenticating..."
+                      : "Signing in offline..."}
                   </>
                 ) : (
-                  "Sign In"
+                  <>
+                    Sign In
+                    {connectionStatus === "disconnected" && (
+                      <span className="ml-2 text-xs opacity-75">
+                        (offline mode)
+                      </span>
+                    )}
+                  </>
                 )}
               </Button>
             </form>
@@ -225,6 +279,20 @@ export default function LoginPage() {
               )}
             </Button>
 
+            {connectionStatus === "disconnected" && (
+              <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-orange-700 dark:text-orange-300">
+                    <p className="font-medium mb-1">
+                      Database connection unavailable
+                    </p>
+                    <p>Please check your internet connection and try again.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 text-center">
               <p className="text-slate-600 dark:text-slate-400">
                 Don't have an account?{" "}
@@ -236,8 +304,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-
-            <TestCredentials onFillCredentials={handleFillCredentials} />
           </CardContent>
         </Card>
       </div>
