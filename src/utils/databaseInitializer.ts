@@ -1,11 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
-import {
-  mockUsers,
-  mockHealthRecords,
-  mockStressData,
-  mockChatHistory,
-  mockBiometricReadings,
-} from "./mockHealthData";
+// import {
+//   mockUsers,
+//   mockHealthRecords,
+//   mockStressData,
+//   mockChatHistory,
+//   mockBiometricReadings,
+// } from "./mockHealthData";
 
 interface InitializeOptions {
   force?: boolean;

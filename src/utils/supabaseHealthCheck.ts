@@ -19,6 +19,7 @@ const requiredTables = [
   "stress_predictions",
   "notifications",
   "device_registrations",
+  "contact_messages", // ✅ added!
 ];
 
 export const performSupabaseHealthCheck =
