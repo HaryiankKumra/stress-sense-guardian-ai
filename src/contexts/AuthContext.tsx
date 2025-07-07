@@ -386,8 +386,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("❌ No matching credentials found");
       return { success: false, error: "Invalid credentials" };
     } catch (error) {
-      console.error("❌ Login failed:", error);
-      return { success: false, error: "Login failed" };
+      logError("Login failed", error);
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 
