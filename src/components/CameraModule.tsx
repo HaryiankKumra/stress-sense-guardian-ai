@@ -243,18 +243,31 @@ const CameraModule: React.FC<CameraModuleProps> = ({
   };
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Camera className="w-5 h-5 text-blue-400" />
-          Facial Emotion Detection
+    <Card className="bg-gradient-to-br from-slate-900/90 via-blue-900/30 to-purple-900/20 border-slate-700/50 backdrop-blur-xl shadow-2xl">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between text-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-xl">
+              <Camera className="w-5 h-5 text-blue-400" />
+            </div>
+            <span className="text-xl font-semibold">Emotion Detection</span>
+          </div>
+          {localCameraActive && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-emerald-400 text-sm font-medium">Live</span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Camera Feed */}
-          <div className="space-y-4">
-            <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Camera Feed - Takes 2 columns */}
+          <div className="xl:col-span-2 space-y-4">
+            <div
+              className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-700/50"
+              style={{ aspectRatio: "16/10" }}
+            >
               {error ? (
                 <div className="flex items-center justify-center h-full text-red-400 p-6">
                   <div className="text-center space-y-4">
