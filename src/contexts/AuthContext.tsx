@@ -74,81 +74,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("🔄 Initializing authentication...");
 
       try {
-        // Check for mock user first (for testing)
-        const mockUser = localStorage.getItem("mock_user");
-        if (mockUser && mounted) {
-          try {
-            const userData = JSON.parse(mockUser);
-            console.log("✅ Found mock user in localStorage:", userData.email);
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              full_name: userData.full_name,
-            });
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-            const mockProfile = mockProfiles.find(
-              (p) => p.user_id === userData.id,
-            );
-            if (mockProfile) {
-              setProfile(mockProfile);
-              console.log("✅ Loaded mock profile");
-            } else {
-              // Create default profile if none exists
-              const defaultProfile = {
-                id: `profile-${userData.id}`,
-                user_id: userData.id,
-                stress_threshold_low: 30,
-                stress_threshold_medium: 60,
-                stress_threshold_high: 80,
-                sleep_target_hours: 8,
-                water_intake_target: 2000,
-              };
-              setProfile(defaultProfile);
-              console.log("✅ Created default profile");
-            }
-
-            if (mounted) setLoading(false);
-            return;
-          } catch (e) {
-            console.warn("⚠️ Invalid mock user data, removing...");
-            localStorage.removeItem("mock_user");
-          }
+        if (sessionError) {
+          console.error("❌ Session error:", sessionError);
+          throw sessionError;
         }
 
-        // Test Supabase connection with shorter timeout
-        console.log("🔄 Testing Supabase connection...");
-        const connectionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Connection timeout")), 3000),
-        );
+        if (session?.user && mounted) {
+          console.log("✅ Found active session:", session.user.email);
+          const supabaseUser = session.user;
+          setUser({
+            id: supabaseUser.id,
+            email: supabaseUser.email || "",
+            full_name:
+              supabaseUser.user_metadata?.full_name || supabaseUser.email || "",
+          });
 
-        try {
-          const {
-            data: { session },
-          } = (await Promise.race([connectionPromise, timeoutPromise])) as any;
-
-          if (session?.user && mounted) {
-            console.log("✅ Found Supabase session:", session.user.email);
-            const supabaseUser = session.user;
-            setUser({
-              id: supabaseUser.id,
-              email: supabaseUser.email || "",
-              full_name:
-                supabaseUser.user_metadata?.full_name ||
-                supabaseUser.email ||
-                "",
-            });
-
-            // Don't wait for profile fetch - do it in background
-            fetchUserProfile(supabaseUser.id).catch((error) => {
-              console.warn("⚠️ Background profile fetch failed:", error);
-            });
-          } else {
-            console.log("ℹ️ No active Supabase session");
-          }
-        } catch (error) {
-          console.warn("⚠️ Supabase connection failed:", error.message);
-          console.log("📝 Using mock authentication only");
+          // Fetch user profile
+          await fetchUserProfile(supabaseUser.id);
+        } else {
+          console.log("ℹ️ No active session");
         }
       } catch (error) {
         console.error("❌ Auth initialization error:", error);
