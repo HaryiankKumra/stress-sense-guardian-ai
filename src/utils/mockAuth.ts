@@ -1,6 +1,12 @@
 // Mock authentication data for testing when Supabase is not accessible
 export const mockUsers = [
   {
+    id: "user-0",
+    email: "haryiank1kumra@gmail.com",
+    password_hash: "cGFzc3dvcmQxMjM=", // base64 of "password123"
+    full_name: "Haryi Ank Kumra",
+  },
+  {
     id: "user-1",
     email: "john.doe@example.com",
     password_hash: "cGFzc3dvcmQxMjM=", // base64 of "password123"
