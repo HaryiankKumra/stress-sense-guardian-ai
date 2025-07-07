@@ -269,28 +269,53 @@ const CameraModule: React.FC<CameraModuleProps> = ({
               style={{ aspectRatio: "16/10" }}
             >
               {error ? (
-                <div className="flex items-center justify-center h-full text-red-400 p-6">
-                  <div className="text-center space-y-4">
-                    <AlertCircle className="w-12 h-12 mx-auto mb-2" />
-                    <p className="text-sm max-w-md">{error}</p>
+                <div className="flex items-center justify-center h-full p-8">
+                  <div className="text-center space-y-6 max-w-md">
+                    <div className="p-4 bg-red-500/10 rounded-full w-fit mx-auto">
+                      <AlertCircle className="w-12 h-12 text-red-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        Camera Access Required
+                      </h3>
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        {error}
+                      </p>
+                    </div>
 
                     {permissionState === "denied" && (
-                      <div className="space-y-3">
-                        <div className="text-xs text-slate-400 max-w-md">
-                          To enable camera access:
-                          <br />• Click the camera icon in your browser's
-                          address bar
-                          <br />• Or go to Settings → Privacy & Security →
-                          Camera
-                          <br />• Allow camera access for this site
+                      <div className="space-y-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div className="text-xs text-slate-300">
+                          <div className="font-medium mb-2">
+                            To enable camera access:
+                          </div>
+                          <ul className="space-y-1 text-slate-400">
+                            <li>
+                              • Click the camera icon in your browser's address
+                              bar
+                            </li>
+                            <li>
+                              • Or go to Settings → Privacy & Security → Camera
+                            </li>
+                            <li>• Allow camera access for this site</li>
+                          </ul>
                         </div>
                         <Button
                           onClick={startCamera}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                          size="sm"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg"
                           disabled={isLoading}
                         >
-                          {isLoading ? "Requesting..." : "Try Again"}
+                          {isLoading ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Requesting...
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Try Again
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
@@ -298,13 +323,20 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                     {permissionState === "prompt" && (
                       <Button
                         onClick={startCamera}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
+                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg"
                         disabled={isLoading}
                       >
-                        {isLoading
-                          ? "Requesting..."
-                          : "Grant Camera Permission"}
+                        {isLoading ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Requesting...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-4 h-4 mr-2" />
+                            Grant Camera Permission
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
