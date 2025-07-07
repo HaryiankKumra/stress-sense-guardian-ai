@@ -13,14 +13,40 @@ export function TestCredentials({ onFillCredentials }: TestCredentialsProps) {
 
   const testAccounts = [
     {
+      email: "john.doe@example.com",
+      password: "password123",
+      name: "John Doe (Hypertension, Anxiety)",
+    },
+    {
+      email: "sarah.smith@example.com",
+      password: "demo123",
+      name: "Sarah Smith (Diabetes, Migraines)",
+    },
+    {
+      email: "mike.johnson@example.com",
+      password: "admin123",
+      name: "Mike Johnson (High Cholesterol, Sleep Apnea)",
+    },
+    {
+      email: "emily.brown@example.com",
+      password: "patient123",
+      name: "Emily Brown (Asthma, Allergies)",
+    },
+    {
+      email: "david.wilson@example.com",
+      password: "test123",
+      name: "David Wilson (Arthritis, Depression)",
+    },
+    // Legacy accounts for backward compatibility
+    {
       email: "test@stressguard.ai",
       password: "password123",
-      name: "Test User",
+      name: "Test User (Legacy)",
     },
     {
       email: "demo@stressguard.ai",
       password: "demo123",
-      name: "Demo User",
+      name: "Demo User (Legacy)",
     },
   ];
 
