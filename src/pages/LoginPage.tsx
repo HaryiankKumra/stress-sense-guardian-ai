@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +10,21 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Monitor, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Monitor,
+  Eye,
+  EyeOff,
+  Loader2,
+  Wifi,
+  WifiOff,
+  AlertCircle,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { TestCredentials } from "@/components/TestCredentials";
+import { quickConnectionTest } from "@/utils/supabaseHealthCheck";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
