@@ -356,8 +356,15 @@ const StressDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Chatbot */}
-        <StressChatbot />
+        {/* Configuration Status & Chatbot */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-1">
+            <ConfigurationStatus />
+          </div>
+          <div className="xl:col-span-2">
+            <StressChatbot />
+          </div>
+        </div>
 
         {/* Stress Notifications */}
         {stressStatus === "high" && (
