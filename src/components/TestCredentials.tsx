@@ -13,6 +13,11 @@ export function TestCredentials({ onFillCredentials }: TestCredentialsProps) {
 
   const testAccounts = [
     {
+      email: "haryiank1kumra@gmail.com",
+      password: "password123",
+      name: "Haryi Ank Kumra (Primary Account)",
+    },
+    {
       email: "john.doe@example.com",
       password: "password123",
       name: "John Doe (Hypertension, Anxiety)",
