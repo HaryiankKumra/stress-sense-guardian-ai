@@ -60,6 +60,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    // Safeguard: Force loading to false after 15 seconds maximum
+    const maxLoadingTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn(
+          "⚠️ Maximum loading timeout reached, forcing loading to false",
+        );
+        setLoading(false);
+      }
+    }, 15000);
+
     const initAuth = async () => {
       console.log("🔄 Initializing authentication...");
 
