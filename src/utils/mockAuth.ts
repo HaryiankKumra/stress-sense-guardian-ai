@@ -65,6 +65,25 @@ export const mockUsers = [
 
 export const mockProfiles = [
   {
+    id: "profile-0",
+    user_id: "user-0",
+    age: 30,
+    weight: 70.0,
+    height: 175.0,
+    blood_type: "O+",
+    medical_conditions: [],
+    medications: [],
+    allergies: [],
+    emergency_contact_name: "Emergency Contact",
+    emergency_contact_phone: "+1-555-0000",
+    stress_threshold_low: 25,
+    stress_threshold_medium: 55,
+    stress_threshold_high: 75,
+    sleep_target_hours: 8,
+    water_intake_target: 2500,
+    activity_level: "moderately_active",
+  },
+  {
     id: "profile-1",
     user_id: "user-1",
     age: 28,
