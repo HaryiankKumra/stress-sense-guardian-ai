@@ -135,6 +135,31 @@ export default function LoginPage() {
             <CardDescription className="text-slate-600 dark:text-slate-300">
               Sign in to access your stress monitoring dashboard
             </CardDescription>
+
+            {/* Connection Status */}
+            <div className="flex justify-center mt-3">
+              {connectionStatus === "checking" && (
+                <Badge variant="outline" className="text-xs">
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Checking connection...
+                </Badge>
+              )}
+              {connectionStatus === "connected" && (
+                <Badge variant="default" className="text-xs bg-green-500">
+                  <Wifi className="w-3 h-3 mr-1" />
+                  Database connected
+                </Badge>
+              )}
+              {connectionStatus === "disconnected" && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs bg-orange-500 text-white"
+                >
+                  <WifiOff className="w-3 h-3 mr-1" />
+                  Using offline mode
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
