@@ -573,4 +573,5 @@ const IntroductionPage: React.FC = () => {
   );
 };
 
-export default IntroductionPage;
+export default
+  IntroductionPage;
