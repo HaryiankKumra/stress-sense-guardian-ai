@@ -93,6 +93,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (mockProfile) {
               setProfile(mockProfile);
               console.log("✅ Loaded mock profile");
+            } else {
+              // Create default profile if none exists
+              const defaultProfile = {
+                id: `profile-${userData.id}`,
+                user_id: userData.id,
+                stress_threshold_low: 30,
+                stress_threshold_medium: 60,
+                stress_threshold_high: 80,
+                sleep_target_hours: 8,
+                water_intake_target: 2000,
+              };
+              setProfile(defaultProfile);
+              console.log("✅ Created default profile");
             }
 
             if (mounted) setLoading(false);
@@ -103,11 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Test Supabase connection with timeout
+        // Test Supabase connection with shorter timeout
         console.log("🔄 Testing Supabase connection...");
         const connectionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Connection timeout")), 5000),
+          setTimeout(() => reject(new Error("Connection timeout")), 3000),
         );
 
         try {
