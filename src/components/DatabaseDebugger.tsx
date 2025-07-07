@@ -156,6 +156,29 @@ const DatabaseDebugger: React.FC = () => {
     setLoading(false);
   };
 
+  const autoFix = async () => {
+    setLoading(true);
+    addLog("Attempting to auto-fix common issues...");
+
+    try {
+      const result = await autoFixCommonIssues();
+
+      result.fixed.forEach((fix) => addLog(`✅ Fixed: ${fix}`));
+      result.failed.forEach((fail) => addLog(`❌ Could not fix: ${fail}`));
+
+      if (result.fixed.length > 0) {
+        addLog("🔧 Auto-fix completed, re-checking status...");
+        await checkStatus();
+      } else {
+        addLog("🤷 No issues were auto-fixable");
+      }
+    } catch (error) {
+      addLog(`💥 Auto-fix error: ${error}`);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
     checkStatus();
   }, []);
