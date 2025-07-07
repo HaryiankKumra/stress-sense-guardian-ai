@@ -19,6 +19,10 @@ import {
   clearAllData,
   getSampleCredentials,
 } from "@/utils/databaseInitializer";
+import {
+  performSupabaseHealthCheck,
+  autoFixCommonIssues,
+} from "@/utils/supabaseHealthCheck";
 
 interface DatabaseStatus {
   connected: boolean;
