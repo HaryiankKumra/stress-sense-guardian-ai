@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,8 +23,6 @@ import {
 } from "lucide-react";
 
 const IntroductionPage: React.FC = () => {
-  
-
   const teamMembers = [
     {
       name: "Arjun Sharma",

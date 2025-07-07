@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,7 +105,7 @@ const SettingsPage: React.FC = () => {
 
       if (data) {
         setProfile({
-          full_name: data.full_name || user.email || '',
+          full_name: user.email || '', // Use email as fallback since full_name doesn't exist in user_profiles
           email: user.email || '',
           age: data.age,
           weight: data.weight,
