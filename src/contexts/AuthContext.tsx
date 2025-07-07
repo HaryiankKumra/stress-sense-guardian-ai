@@ -186,20 +186,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      console.log("🔄 Fetching user profile for:", userId);
+
+      const profilePromise = supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", userId)
         .single();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Profile fetch timeout")), 10000),
+      );
+
+      const { data, error } = (await Promise.race([
+        profilePromise,
+        timeoutPromise,
+      ])) as any;
+
       if (error && error.code !== "PGRST116") {
-        console.error("Profile fetch error:", error);
+        console.warn("⚠️ Profile fetch error:", error.message);
+
+        // Fall back to mock profile if available
+        const mockProfile = mockProfiles.find((p) => p.user_id === userId);
+        if (mockProfile) {
+          console.log("📝 Using mock profile as fallback");
+          setProfile(mockProfile);
+        }
         return;
       }
 
       if (data) {
+        console.log("✅ Profile loaded from database");
         setProfile(data);
       } else {
+        console.log("🔄 Creating default profile...");
         // Create default profile
         const defaultProfile = {
           user_id: userId,
@@ -210,18 +230,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           water_intake_target: 2000,
         };
 
-        const { data: newProfile, error: createError } = await supabase
-          .from("user_profiles")
-          .insert(defaultProfile)
-          .select()
-          .single();
+        try {
+          const { data: newProfile, error: createError } = await supabase
+            .from("user_profiles")
+            .insert(defaultProfile)
+            .select()
+            .single();
 
-        if (!createError && newProfile) {
-          setProfile(newProfile);
+          if (!createError && newProfile) {
+            console.log("✅ Default profile created");
+            setProfile(newProfile);
+          } else {
+            console.warn("⚠️ Could not create profile, using mock fallback");
+            const mockProfile = mockProfiles.find((p) => p.user_id === userId);
+            if (mockProfile) {
+              setProfile(mockProfile);
+            }
+          }
+        } catch (createError) {
+          console.warn("⚠️ Profile creation failed:", createError);
+          // Use mock profile as ultimate fallback
+          const mockProfile = mockProfiles.find((p) => p.user_id === userId);
+          if (mockProfile) {
+            setProfile(mockProfile);
+          }
         }
       }
     } catch (error) {
-      console.error("Profile error:", error);
+      console.error("❌ Profile error:", error);
+      // Use mock profile as fallback
+      const mockProfile = mockProfiles.find((p) => p.user_id === userId);
+      if (mockProfile) {
+        console.log("📝 Using mock profile as error fallback");
+        setProfile(mockProfile);
+      }
     }
   };
 
