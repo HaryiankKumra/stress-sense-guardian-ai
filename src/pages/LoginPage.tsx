@@ -220,10 +220,19 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
+                    {connectionStatus === "connected"
+                      ? "Authenticating..."
+                      : "Signing in offline..."}
                   </>
                 ) : (
-                  "Sign In"
+                  <>
+                    Sign In
+                    {connectionStatus === "disconnected" && (
+                      <span className="ml-2 text-xs opacity-75">
+                        (offline mode)
+                      </span>
+                    )}
+                  </>
                 )}
               </Button>
             </form>
