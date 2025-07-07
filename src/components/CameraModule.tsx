@@ -342,10 +342,20 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                   </div>
                 </div>
               ) : isLoading ? (
-                <div className="flex items-center justify-center h-full text-blue-400">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p>Requesting camera access...</p>
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center space-y-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-blue-500/20 rounded-full"></div>
+                      <div className="absolute inset-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <div>
+                      <p className="text-blue-400 font-medium">
+                        Initializing Camera
+                      </p>
+                      <p className="text-slate-400 text-sm">
+                        Please allow camera access when prompted
+                      </p>
+                    </div>
                   </div>
                 </div>
               ) : (
