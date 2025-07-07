@@ -452,10 +452,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq("user_id", user.id);
 
       if (error) {
-        console.error("❌ Profile update error:", error);
+        logError("Profile update error", error);
         return {
           success: false,
-          error: error.message || error.details || "Profile update failed",
+          error: getErrorMessage(error),
         };
       }
 
