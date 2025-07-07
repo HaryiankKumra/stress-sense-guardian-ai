@@ -200,26 +200,22 @@ const SettingsPage: React.FC = () => {
           description: "Your profile has been updated successfully.",
         });
       } else {
-        console.error("❌ Profile save failed:", result.error);
+        logError("Profile save failed", result.error);
         toast({
           title: "Error",
-          description:
-            result.error || "Failed to save settings. Please try again.",
+          description: createUserErrorMessage(
+            result.error,
+            "Failed to save settings",
+          ),
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error("❌ Error saving profile:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : "Failed to save settings. Please try again.";
+      logError("Error saving profile", error);
 
       toast({
         title: "Error",
-        description: errorMessage,
+        description: createUserErrorMessage(error, "Failed to save settings"),
         variant: "destructive",
       });
     }
