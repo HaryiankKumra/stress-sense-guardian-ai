@@ -463,10 +463,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetchUserProfile(user.id);
       return { success: true };
     } catch (error) {
-      console.error("❌ Profile update exception:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Profile update failed";
-      return { success: false, error: errorMessage };
+      logError("Profile update exception", error);
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 
