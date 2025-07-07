@@ -115,7 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 supabaseUser.email ||
                 "",
             });
-            await fetchUserProfile(supabaseUser.id);
+
+            // Don't wait for profile fetch - do it in background
+            fetchUserProfile(supabaseUser.id).catch((error) => {
+              console.warn("⚠️ Background profile fetch failed:", error);
+            });
           } else {
             console.log("ℹ️ No active Supabase session");
           }
