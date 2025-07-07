@@ -285,6 +285,23 @@ export default function LoginPage() {
               )}
             </Button>
 
+            {connectionStatus === "disconnected" && (
+              <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-orange-700 dark:text-orange-300">
+                    <p className="font-medium mb-1">
+                      Database connection unavailable
+                    </p>
+                    <p>
+                      You can still log in using the test accounts below. All
+                      features will work in offline mode with sample data.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 text-center">
               <p className="text-slate-600 dark:text-slate-400">
                 Don't have an account?{" "}
