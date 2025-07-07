@@ -415,65 +415,103 @@ const CameraModule: React.FC<CameraModuleProps> = ({
             </div>
           </div>
 
-          {/* Emotion Analysis */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
-                <Eye className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-                <div className="text-2xl font-bold text-white">
-                  {isProcessing && localCameraActive ? "Active" : "Inactive"}
+          {/* Emotion Analysis Panel */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Status Cards */}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Eye className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">
+                      {isProcessing && localCameraActive
+                        ? "Active"
+                        : "Inactive"}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      Detection Status
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-slate-400">Detection Status</div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      isProcessing && localCameraActive
+                        ? "bg-gradient-to-r from-emerald-500 to-green-500 w-full"
+                        : "bg-slate-600 w-0"
+                    }`}
+                  />
+                </div>
               </div>
 
-              <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
-                <div className="text-2xl font-bold text-white">
-                  {(confidence * 100).toFixed(1)}%
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-300 text-sm">
+                    Confidence Level
+                  </span>
+                  <span className="text-2xl font-bold text-white">
+                    {(confidence * 100).toFixed(0)}%
+                  </span>
                 </div>
-                <div className="text-sm text-slate-400">Confidence</div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                    style={{ width: `${confidence * 100}%` }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg text-white">
-                Current Analysis
+            {/* Current Analysis */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-5 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+              <h3 className="font-semibold text-lg text-white mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                Live Analysis
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Dominant Emotion:</span>
+                  <span className="text-slate-300 text-sm">
+                    Primary Emotion
+                  </span>
                   <Badge
-                    className={`${getEmotionColor(currentEmotion)} border`}
+                    className={`${getEmotionColor(currentEmotion)} border font-medium`}
                   >
-                    {currentEmotion}
+                    {currentEmotion.charAt(0).toUpperCase() +
+                      currentEmotion.slice(1)}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Stress Indicator:</span>
+                  <span className="text-slate-300 text-sm">Stress Level</span>
                   <Badge
                     className={
                       currentEmotion === "angry" || currentEmotion === "fearful"
                         ? "bg-red-500/20 text-red-400 border-red-500/30"
                         : currentEmotion === "sad"
                           ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                          : "bg-green-500/20 text-green-400 border-green-500/30"
+                          : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                     }
                   >
                     {currentEmotion === "angry" || currentEmotion === "fearful"
-                      ? "High"
+                      ? "High Risk"
                       : currentEmotion === "sad"
-                        ? "Medium"
-                        : "Low"}
+                        ? "Moderate"
+                        : "Low Risk"}
                   </Badge>
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/30">
-              <p className="text-blue-400 text-sm">
-                <strong>💡 TensorFlow.js Integration:</strong>
-                Place your facial emotion detection model files in{" "}
-                <code className="text-purple-400">/public/models/facial/</code>
-                and update the model loading logic in this component.
+            {/* Info Panel */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4 rounded-xl border border-blue-500/20 backdrop-blur-sm">
+              <p className="text-blue-400 text-sm leading-relaxed">
+                <strong>AI Model Integration:</strong> This module uses
+                simulated emotion detection. Integrate TensorFlow.js models in{" "}
+                <code className="text-purple-400 bg-slate-800/50 px-1 rounded">
+                  /public/models/
+                </code>
+                for real-time facial emotion analysis.
               </p>
             </div>
           </div>
