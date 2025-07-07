@@ -312,7 +312,7 @@ const DatabaseDebugger: React.FC = () => {
               </div>
               <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded">
                 <p className="text-yellow-300 text-xs">
-                  💡 These credentials work with both Supabase (if connected)
+                  ℹ️ These credentials work with both Supabase (if connected)
                   and mock authentication
                 </p>
               </div>
