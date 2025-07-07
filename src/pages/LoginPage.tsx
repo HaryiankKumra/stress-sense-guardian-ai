@@ -32,9 +32,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "checking" | "connected" | "disconnected"
+  >("checking");
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
   const { toast } = useToast();
+
+  // Check connection status on load
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const isConnected = await quickConnectionTest();
+        setConnectionStatus(isConnected ? "connected" : "disconnected");
+      } catch {
+        setConnectionStatus("disconnected");
+      }
+    };
+
+    checkConnection();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
