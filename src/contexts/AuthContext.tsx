@@ -335,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("✅ Supabase login successful");
           return { success: true };
         } else if (supabaseError) {
-          console.warn("���️ Supabase login failed:", supabaseError.message);
+          console.warn("⚠️ Supabase login failed:", supabaseError.message);
         }
       } catch (error) {
         console.warn("⚠️ Supabase login error:", error.message);
@@ -365,6 +365,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mockProfile) {
           setProfile(mockProfile);
           console.log("✅ Mock profile loaded");
+        } else {
+          console.warn("⚠️ No mock profile found for user, creating default");
+          const defaultProfile = {
+            id: `profile-${mockUser.id}`,
+            user_id: mockUser.id,
+            stress_threshold_low: 30,
+            stress_threshold_medium: 60,
+            stress_threshold_high: 80,
+            sleep_target_hours: 8,
+            water_intake_target: 2000,
+          };
+          setProfile(defaultProfile);
         }
 
         return { success: true };
