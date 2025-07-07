@@ -369,11 +369,15 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                   />
                   <canvas ref={canvasRef} className="hidden" />
 
-                  {/* Camera Control Button - Adjacent to video */}
+                  {/* Camera Control Button */}
                   <div className="absolute top-4 right-4">
                     <Button
                       onClick={toggleCamera}
-                      className={`${localCameraActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white`}
+                      className={`${
+                        localCameraActive
+                          ? "bg-red-500/80 hover:bg-red-600 border-red-400/50"
+                          : "bg-emerald-500/80 hover:bg-emerald-600 border-emerald-400/50"
+                      } text-white backdrop-blur-sm border shadow-lg`}
                       size="sm"
                       disabled={isLoading}
                     >
@@ -390,12 +394,20 @@ const CameraModule: React.FC<CameraModuleProps> = ({
                   {/* Current emotion overlay */}
                   {isProcessing && localCameraActive && (
                     <div className="absolute bottom-4 left-4 right-4">
-                      <Badge
-                        className={`${getEmotionColor(currentEmotion)} text-lg py-2 px-4 w-full justify-center border`}
-                      >
-                        {currentEmotion.toUpperCase()} (
-                        {(confidence * 100).toFixed(1)}%)
-                      </Badge>
+                      <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white text-sm font-medium">
+                            Detected:
+                          </span>
+                          <Badge
+                            className={`${getEmotionColor(currentEmotion)} border font-medium`}
+                          >
+                            {currentEmotion.charAt(0).toUpperCase() +
+                              currentEmotion.slice(1)}{" "}
+                            ({(confidence * 100).toFixed(1)}%)
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>
