@@ -1,33 +1,159 @@
-
 // Mock authentication data for testing when Supabase is not accessible
 export const mockUsers = [
   {
-    id: "1",
-    email: "test@stressguard.ai",
+    id: "user-1",
+    email: "john.doe@example.com",
     password_hash: "cGFzc3dvcmQxMjM=", // base64 of "password123"
     full_name: "John Doe",
   },
   {
-    id: "2", 
+    id: "user-2",
+    email: "sarah.smith@example.com",
+    password_hash: "ZGVtbzEyMw==", // base64 of "demo123"
+    full_name: "Sarah Smith",
+  },
+  {
+    id: "user-3",
+    email: "mike.johnson@example.com",
+    password_hash: "YWRtaW4xMjM=", // base64 of "admin123"
+    full_name: "Mike Johnson",
+  },
+  {
+    id: "user-4",
+    email: "emily.brown@example.com",
+    password_hash: "cGF0aWVudDEyMw==", // base64 of "patient123"
+    full_name: "Emily Brown",
+  },
+  {
+    id: "user-5",
+    email: "david.wilson@example.com",
+    password_hash: "dGVzdDEyMw==", // base64 of "test123"
+    full_name: "David Wilson",
+  },
+  // Legacy test accounts for backward compatibility
+  {
+    id: "1",
+    email: "test@stressguard.ai",
+    password_hash: "cGFzc3dvcmQxMjM=", // base64 of "password123"
+    full_name: "Test User",
+  },
+  {
+    id: "2",
     email: "demo@stressguard.ai",
     password_hash: "ZGVtbzEyMw==", // base64 of "demo123"
-    full_name: "Jane Smith",
+    full_name: "Demo User",
   },
   {
     id: "3",
-    email: "admin@stressguard.ai", 
+    email: "admin@stressguard.ai",
     password_hash: "YWRtaW4xMjM=", // base64 of "admin123"
     full_name: "Admin User",
   },
   {
     id: "4",
     email: "patient@stressguard.ai",
-    password_hash: "cGF0aWVudDEyMw==", // base64 of "patient123" 
-    full_name: "Sarah Johnson",
+    password_hash: "cGF0aWVudDEyMw==", // base64 of "patient123"
+    full_name: "Patient User",
   },
 ];
 
 export const mockProfiles = [
+  {
+    id: "profile-1",
+    user_id: "user-1",
+    age: 28,
+    weight: 75.5,
+    height: 180.0,
+    blood_type: "O+",
+    medical_conditions: ["Hypertension", "Anxiety"],
+    medications: ["Lisinopril 10mg", "Sertraline 50mg"],
+    allergies: ["Peanuts", "Shellfish"],
+    emergency_contact_name: "Mary Doe",
+    emergency_contact_phone: "+1-555-0123",
+    stress_threshold_low: 25,
+    stress_threshold_medium: 55,
+    stress_threshold_high: 75,
+    sleep_target_hours: 8,
+    water_intake_target: 2500,
+    activity_level: "moderately_active",
+  },
+  {
+    id: "profile-2",
+    user_id: "user-2",
+    age: 35,
+    weight: 62.0,
+    height: 165.0,
+    blood_type: "A+",
+    medical_conditions: ["Type 2 Diabetes", "Migraines"],
+    medications: ["Metformin 1000mg", "Sumatriptan 50mg"],
+    allergies: ["Latex"],
+    emergency_contact_name: "Bob Smith",
+    emergency_contact_phone: "+1-555-0456",
+    stress_threshold_low: 30,
+    stress_threshold_medium: 60,
+    stress_threshold_high: 80,
+    sleep_target_hours: 7,
+    water_intake_target: 2000,
+    activity_level: "lightly_active",
+  },
+  {
+    id: "profile-3",
+    user_id: "user-3",
+    age: 42,
+    weight: 88.2,
+    height: 190.0,
+    blood_type: "B+",
+    medical_conditions: ["High Cholesterol", "Sleep Apnea"],
+    medications: ["Atorvastatin 20mg", "CPAP therapy"],
+    allergies: ["Dust mites", "Pollen"],
+    emergency_contact_name: "Lisa Johnson",
+    emergency_contact_phone: "+1-555-0789",
+    stress_threshold_low: 35,
+    stress_threshold_medium: 65,
+    stress_threshold_high: 85,
+    sleep_target_hours: 7,
+    water_intake_target: 3000,
+    activity_level: "sedentary",
+  },
+  {
+    id: "profile-4",
+    user_id: "user-4",
+    age: 24,
+    weight: 58.0,
+    height: 160.0,
+    blood_type: "AB+",
+    medical_conditions: ["Asthma", "Seasonal Allergies"],
+    medications: ["Albuterol inhaler", "Claritin 10mg"],
+    allergies: ["Cats", "Grass pollen"],
+    emergency_contact_name: "Tom Brown",
+    emergency_contact_phone: "+1-555-0321",
+    stress_threshold_low: 20,
+    stress_threshold_medium: 50,
+    stress_threshold_high: 70,
+    sleep_target_hours: 9,
+    water_intake_target: 2200,
+    activity_level: "very_active",
+  },
+  {
+    id: "profile-5",
+    user_id: "user-5",
+    age: 51,
+    weight: 92.5,
+    height: 185.0,
+    blood_type: "O-",
+    medical_conditions: ["Arthritis", "Depression"],
+    medications: ["Ibuprofen 400mg", "Fluoxetine 20mg"],
+    allergies: ["Aspirin"],
+    emergency_contact_name: "Helen Wilson",
+    emergency_contact_phone: "+1-555-0654",
+    stress_threshold_low: 40,
+    stress_threshold_medium: 70,
+    stress_threshold_high: 90,
+    sleep_target_hours: 8,
+    water_intake_target: 2500,
+    activity_level: "lightly_active",
+  },
+  // Legacy profiles for backward compatibility
   {
     id: "1",
     user_id: "1",
@@ -38,7 +164,7 @@ export const mockProfiles = [
     medical_conditions: ["Hypertension", "Anxiety"],
     medications: ["Lisinopril", "Sertraline"],
     allergies: ["Peanuts", "Shellfish"],
-    emergency_contact_name: "Mary Doe",
+    emergency_contact_name: "Test Emergency",
     emergency_contact_phone: "+1-555-0123",
     stress_threshold_low: 25,
     stress_threshold_medium: 55,
@@ -49,7 +175,7 @@ export const mockProfiles = [
   },
   {
     id: "2",
-    user_id: "2", 
+    user_id: "2",
     age: 32,
     weight: 68.0,
     height: 165.0,
@@ -57,7 +183,7 @@ export const mockProfiles = [
     medical_conditions: ["Diabetes Type 2"],
     medications: ["Metformin"],
     allergies: ["Lactose"],
-    emergency_contact_name: "Bob Smith",
+    emergency_contact_name: "Demo Emergency",
     emergency_contact_phone: "+1-555-0456",
     stress_threshold_low: 30,
     stress_threshold_medium: 60,
@@ -71,7 +197,7 @@ export const mockProfiles = [
     user_id: "3",
     age: 45,
     weight: 82.0,
-    height: 175.0, 
+    height: 175.0,
     blood_type: "B+",
     medical_conditions: ["High Cholesterol"],
     medications: ["Atorvastatin"],
@@ -91,11 +217,11 @@ export const mockProfiles = [
     age: 26,
     weight: 62.0,
     height: 168.0,
-    blood_type: "AB+", 
+    blood_type: "AB+",
     medical_conditions: ["Asthma", "Seasonal Allergies"],
     medications: ["Albuterol", "Claritin"],
     allergies: ["Pollen", "Dust"],
-    emergency_contact_name: "Tom Johnson",
+    emergency_contact_name: "Patient Emergency",
     emergency_contact_phone: "+1-555-0321",
     stress_threshold_low: 20,
     stress_threshold_medium: 50,
@@ -117,7 +243,7 @@ export const mockSensorData = [
     timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
   },
   {
-    id: "sensor-2", 
+    id: "sensor-2",
     user_id: "1",
     heart_rate: 78,
     temperature: 36.7,
@@ -138,7 +264,7 @@ export const mockSensorData = [
 export const mockStressPredictions = [
   {
     id: "pred-1",
-    user_id: "1", 
+    user_id: "1",
     stress_level: "moderate",
     confidence: 0.78,
     physiological_score: 0.65,
@@ -149,7 +275,7 @@ export const mockStressPredictions = [
   {
     id: "pred-2",
     user_id: "1",
-    stress_level: "high", 
+    stress_level: "high",
     confidence: 0.82,
     physiological_score: 0.75,
     facial_score: 0.68,
@@ -157,7 +283,7 @@ export const mockStressPredictions = [
     timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
   },
   {
-    id: "pred-3", 
+    id: "pred-3",
     user_id: "2",
     stress_level: "low",
     confidence: 0.89,
