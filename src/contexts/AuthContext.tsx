@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Safeguard: Force loading to false after 15 seconds maximum
+    // Safeguard: Force loading to false after 10 seconds maximum
     const maxLoadingTimeout = setTimeout(() => {
       if (mounted) {
         console.warn(
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
         setLoading(false);
       }
-    }, 15000);
+    }, 10000);
 
     const initAuth = async () => {
       console.log("🔄 Initializing authentication...");
@@ -111,61 +111,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth();
 
-    // Listen for auth state changes (with error handling)
-    let subscription: any = null;
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
-    try {
-      const { data } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!mounted) return;
+      console.log("🔄 Auth state change:", event);
 
-          console.log("🔄 Auth state change:", event);
+      if (session?.user) {
+        const supabaseUser = session.user;
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email || "",
+          full_name:
+            supabaseUser.user_metadata?.full_name || supabaseUser.email || "",
+        });
 
-          if (session?.user) {
-            const supabaseUser = session.user;
-            setUser({
-              id: supabaseUser.id,
-              email: supabaseUser.email || "",
-              full_name:
-                supabaseUser.user_metadata?.full_name ||
-                supabaseUser.email ||
-                "",
-            });
+        // Fetch profile in background
+        fetchUserProfile(supabaseUser.id).catch((error) => {
+          console.warn("⚠️ Auth state profile fetch failed:", error);
+        });
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
 
-            // Don't wait for profile fetch in auth state changes
-            fetchUserProfile(supabaseUser.id).catch((error) => {
-              console.warn("⚠️ Auth state profile fetch failed:", error);
-            });
-          } else {
-            // Only clear user if not using mock auth
-            const mockUser = localStorage.getItem("mock_user");
-            if (!mockUser) {
-              setUser(null);
-              setProfile(null);
-            }
-          }
-
-          // Always clear loading state
-          if (mounted) {
-            setLoading(false);
-          }
-        },
-      );
-      subscription = data.subscription;
-    } catch (error) {
-      console.warn("⚠️ Could not set up auth state listener:", error);
-    }
+      // Always clear loading state
+      if (mounted) {
+        setLoading(false);
+      }
+    });
 
     return () => {
       mounted = false;
       clearTimeout(maxLoadingTimeout);
-      if (subscription) {
-        try {
-          subscription.unsubscribe();
-        } catch (error) {
-          console.warn("Warning: Could not unsubscribe from auth changes");
-        }
-      }
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -173,86 +154,118 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("🔄 Fetching user profile for:", userId);
 
-      // Try to find mock profile first for faster loading
-      const mockProfile = mockProfiles.find((p) => p.user_id === userId);
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
 
-      // Set mock profile immediately if available, then try to fetch real one
-      if (mockProfile) {
-        console.log("📝 Setting mock profile immediately for user:", userId);
-        setProfile(mockProfile);
-      }
-
-      // Try to fetch from database with shorter timeout (3 seconds)
-      try {
-        const profilePromise = supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("user_id", userId)
-          .single();
-
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Profile fetch timeout")), 3000),
-        );
-
-        const { data, error } = (await Promise.race([
-          profilePromise,
-          timeoutPromise,
-        ])) as any;
-
-        if (!error && data) {
-          console.log("✅ Profile loaded from database, updating...");
-          setProfile(data);
-          return;
-        } else if (error && error.code !== "PGRST116") {
-          console.warn("⚠️ Profile fetch error:", error.message);
-        }
-      } catch (fetchError) {
-        console.warn("⚠️ Profile fetch failed:", fetchError.message);
-      }
-
-      // If database fetch failed and we don't have a mock profile, create a default one
-      if (!mockProfile) {
-        console.log("🔄 Creating default profile...");
-        const defaultProfile = {
-          id: `profile-${userId}`,
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist, create one
+        console.log("📝 Creating new profile for user:", userId);
+        const newProfile = {
           user_id: userId,
-          age: undefined,
-          weight: undefined,
-          height: undefined,
-          blood_type: undefined,
-          medical_conditions: [],
-          medications: [],
-          allergies: [],
-          emergency_contact_name: undefined,
-          emergency_contact_phone: undefined,
           stress_threshold_low: 30,
           stress_threshold_medium: 60,
           stress_threshold_high: 80,
-          preferred_notification_time: undefined,
-          activity_level: undefined,
           sleep_target_hours: 8,
           water_intake_target: 2000,
         };
 
-        setProfile(defaultProfile);
-        console.log("✅ Default profile created");
+        const { data: createdProfile, error: createError } = await supabase
+          .from("user_profiles")
+          .insert([newProfile])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("❌ Failed to create profile:", createError);
+          throw createError;
+        }
+
+        setProfile(createdProfile);
+        console.log("✅ Profile created successfully");
+        return;
+      }
+
+      if (error) {
+        console.error("❌ Profile fetch error:", error);
+        throw error;
+      }
+
+      if (data) {
+        setProfile(data);
+        console.log("✅ Profile loaded successfully");
       }
     } catch (error) {
-      console.error("❌ Profile error:", error);
+      console.error("❌ Failed to fetch/create user profile:", error);
+      logError("Failed to fetch user profile", error);
+    }
+  };
 
-      // Always ensure we have some profile, even if it's minimal
-      const fallbackProfile = {
-        id: `profile-${userId}`,
-        user_id: userId,
-        stress_threshold_low: 30,
-        stress_threshold_medium: 60,
-        stress_threshold_high: 80,
-        sleep_target_hours: 8,
-        water_intake_target: 2000,
-      };
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user.id);
+    }
+  };
 
-      setProfile(fallbackProfile);
-      console.log("📝 Using minimal fallback profile");
+  const login = async (email: string, password: string) => {
+    console.log("🔄 Attempting login for:", email);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("❌ Login failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log("✅ Login successful:", data.user.email);
+        return { success: true };
+      }
+
+      return { success: false, error: "Unknown login error" };
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      logError("Login failed", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  };
+
+  const signup = async (email: string, password: string, fullName: string) => {
+    console.log("🔄 Attempting signup for:", email);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        console.error("❌ Signup failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log("✅ Signup successful:", data.user.email);
+        return { success: true };
+      }
+
+      return { success: false, error: "Unknown signup error" };
+    } catch (error) {
+      console.error("❌ Signup error:", error);
+      logError("Signup failed", error);
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 
@@ -276,204 +289,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    console.log("🔄 Attempting login for:", email);
-
-    try {
-      // Try Supabase auth first with timeout
-      try {
-        console.log("🔄 Trying Supabase authentication...");
-        const loginPromise = supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Login timeout")), 10000),
-        );
-
-        const { data: supabaseData, error: supabaseError } =
-          (await Promise.race([loginPromise, timeoutPromise])) as any;
-
-        if (!supabaseError && supabaseData.user) {
-          console.log("✅ Supabase login successful");
-          return { success: true };
-        } else if (supabaseError) {
-          console.warn("⚠️ Supabase login failed:", supabaseError.message);
-        }
-      } catch (error) {
-        console.warn("⚠️ Supabase login error:", error.message);
-      }
-
-      // Fallback to mock authentication for testing
-      console.log("🔄 Trying mock authentication...");
-      console.log(
-        "🔍 Available mock users:",
-        mockUsers.map((u) => u.email),
-      );
-
-      const passwordHash = btoa(password);
-      console.log("🔍 Password hash for comparison:", passwordHash);
-
-      const mockUser = mockUsers.find(
-        (u) => u.email === email && u.password_hash === passwordHash,
-      );
-
-      if (mockUser) {
-        console.log("✅ Mock authentication successful:", mockUser.email);
-
-        const sessionToken = btoa(mockUser.id + ":" + Date.now());
-        localStorage.setItem("session_token", sessionToken);
-        localStorage.setItem("mock_user", JSON.stringify(mockUser));
-
-        setUser({
-          id: mockUser.id,
-          email: mockUser.email,
-          full_name: mockUser.full_name,
-        });
-
-        const mockProfile = mockProfiles.find((p) => p.user_id === mockUser.id);
-        if (mockProfile) {
-          setProfile(mockProfile);
-          console.log("✅ Mock profile loaded");
-        } else {
-          console.warn("⚠️ No mock profile found for user, creating default");
-          const defaultProfile = {
-            id: `profile-${mockUser.id}`,
-            user_id: mockUser.id,
-            stress_threshold_low: 30,
-            stress_threshold_medium: 60,
-            stress_threshold_high: 80,
-            sleep_target_hours: 8,
-            water_intake_target: 2000,
-          };
-          setProfile(defaultProfile);
-        }
-
-        return { success: true };
-      }
-
-      console.log("❌ No matching credentials found");
-      console.log("🔍 Tried email:", email);
-      console.log("🔍 Tried password hash:", passwordHash);
-      return { success: false, error: "Invalid email or password" };
-    } catch (error) {
-      console.error("❌ Login error:", error);
-      logError("Login failed", error);
-      return { success: false, error: getErrorMessage(error) };
-    }
-  };
-
-  const signup = async (email: string, password: string, fullName: string) => {
-    console.log("🔄 Attempting signup for:", email);
-
-    try {
-      // Try Supabase auth first with timeout
-      try {
-        console.log("🔄 Trying Supabase signup...");
-        const signupPromise = supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Signup timeout")), 10000),
-        );
-
-        const { data: supabaseData, error: supabaseError } =
-          (await Promise.race([signupPromise, timeoutPromise])) as any;
-
-        if (!supabaseError && supabaseData.user) {
-          console.log("✅ Supabase signup successful");
-          return { success: true };
-        } else if (supabaseError) {
-          console.warn("⚠️ Supabase signup failed:", supabaseError.message);
-        }
-      } catch (error) {
-        console.warn("⚠️ Supabase signup error:", error.message);
-      }
-
-      // Fallback to mock authentication for testing
-      console.log("🔄 Creating mock account...");
-
-      // Check if user already exists
-      const existingUser = mockUsers.find((u) => u.email === email);
-      if (existingUser) {
-        return { success: false, error: "Account already exists" };
-      }
-
-      // Create new mock user
-      const newUserId = `user-${Date.now()}`;
-      const passwordHash = btoa(password);
-      const newMockUser = {
-        id: newUserId,
-        email: email,
-        password_hash: passwordHash,
-        full_name: fullName,
-      };
-
-      // Add to mock users array (temporarily - this won't persist)
-      mockUsers.push(newMockUser);
-
-      // Create default profile
-      const defaultProfile = {
-        id: `profile-${newUserId}`,
-        user_id: newUserId,
-        age: undefined,
-        weight: undefined,
-        height: undefined,
-        blood_type: undefined,
-        medical_conditions: [],
-        medications: [],
-        allergies: [],
-        emergency_contact_name: undefined,
-        emergency_contact_phone: undefined,
-        stress_threshold_low: 30,
-        stress_threshold_medium: 60,
-        stress_threshold_high: 80,
-        preferred_notification_time: undefined,
-        activity_level: undefined,
-        sleep_target_hours: 8,
-        water_intake_target: 2000,
-      };
-
-      // Add to mock profiles array (temporarily)
-      mockProfiles.push(defaultProfile);
-
-      // Auto-login the new user
-      const sessionToken = btoa(newUserId + ":" + Date.now());
-      localStorage.setItem("session_token", sessionToken);
-      localStorage.setItem("mock_user", JSON.stringify(newMockUser));
-
-      setUser({
-        id: newUserId,
-        email: email,
-        full_name: fullName,
-      });
-
-      setProfile(defaultProfile);
-
-      console.log("✅ Mock signup successful:", email);
-      return { success: true };
-    } catch (error) {
-      logError("Signup failed", error);
-      return { success: false, error: getErrorMessage(error) };
-    }
-  };
-
   const logout = async () => {
     try {
+      console.log("🔄 Logging out...");
       await supabase.auth.signOut();
-      localStorage.removeItem("session_token");
-      localStorage.removeItem("mock_user");
       setUser(null);
       setProfile(null);
+      console.log("✅ Logout successful");
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("❌ Logout error:", error);
     }
   };
 
@@ -481,63 +305,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!user) return { success: false, error: "Not authenticated" };
 
-      // Check if using mock authentication
-      const mockUser = localStorage.getItem("mock_user");
-      if (mockUser) {
-        console.log("📝 Updating mock profile...");
-        setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
+      console.log("🔄 Updating profile...");
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .update(profileData)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("❌ Profile update failed:", error);
+        return { success: false, error: getErrorMessage(error) };
+      }
+
+      if (data) {
+        setProfile(data);
+        console.log("✅ Profile updated successfully");
         return { success: true };
       }
 
-      console.log("🔄 Updating profile in database...");
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
-
-      if (error) {
-        logError("Profile update error", error);
-        return {
-          success: false,
-          error: getErrorMessage(error),
-        };
-      }
-
-      console.log("✅ Profile updated successfully");
-      await fetchUserProfile(user.id);
-      return { success: true };
+      return { success: false, error: "No data returned" };
     } catch (error) {
-      logError("Profile update exception", error);
+      console.error("❌ Profile update error:", error);
+      logError("Profile update failed", error);
       return { success: false, error: getErrorMessage(error) };
     }
   };
 
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchUserProfile(user.id);
-    }
+  const value: AuthContextType = {
+    user,
+    profile,
+    login,
+    signup,
+    loginWithGoogle,
+    logout,
+    updateProfile,
+    refreshProfile,
+    loading,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        login,
-        signup,
-        loginWithGoogle,
-        logout,
-        updateProfile,
-        refreshProfile,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
