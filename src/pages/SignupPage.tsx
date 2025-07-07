@@ -317,8 +317,6 @@ export default function SignupPage() {
                 </Link>
               </p>
             </div>
-
-            <TestCredentials />
           </CardContent>
         </Card>
       </div>
