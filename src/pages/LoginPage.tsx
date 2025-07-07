@@ -285,6 +285,8 @@ export default function LoginPage() {
               )}
             </Button>
 
+            <TestCredentials onFillCredentials={handleFillCredentials} />
+
             {connectionStatus === "disconnected" && (
               <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                 <div className="flex items-start gap-2">
@@ -294,7 +296,7 @@ export default function LoginPage() {
                       Database connection unavailable
                     </p>
                     <p>
-                      You can still log in using the test accounts below. All
+                      You can still log in using the test accounts above. All
                       features will work in offline mode with sample data.
                     </p>
                   </div>
@@ -313,8 +315,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-
-            <TestCredentials onFillCredentials={handleFillCredentials} />
           </CardContent>
         </Card>
       </div>
