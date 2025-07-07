@@ -16,7 +16,6 @@ import HealthRecordsPage from '@/pages/HealthRecordsPage';
 import StressMetrics from '@/components/StressMetrics';
 import CameraModule from '@/components/CameraModule';
 import StressChatbot from '@/components/StressChatbot';
-import './App.css';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -24,7 +23,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400"></div>
       </div>
     );
   }
@@ -81,7 +80,7 @@ const MonitoringPage: React.FC = () => {
 
 const ChatPage: React.FC = () => {
   return (
-    <div className="p-6">
+    <div className="p-6 h-full">
       <StressChatbot />
     </div>
   );
@@ -107,83 +106,81 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="App">
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<IntroductionPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              
-              {/* Protected dashboard routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <StressDashboard />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/monitoring" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <MonitoringPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/chat" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ChatPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/camera" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <CameraPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/health" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <HealthRecordsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/settings" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <SettingsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/profile" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <SettingsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/dashboard/analytics" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <MonitoringPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch all route */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <Toaster />
-          </div>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<IntroductionPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            
+            {/* Protected dashboard routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <StressDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/monitoring" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <MonitoringPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/chat" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ChatPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/camera" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <CameraPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/health" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <HealthRecordsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/settings" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <SettingsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/profile" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <SettingsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard/analytics" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <MonitoringPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <Toaster />
         </Router>
       </AuthProvider>
     </ThemeProvider>

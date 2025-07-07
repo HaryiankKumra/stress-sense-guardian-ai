@@ -33,20 +33,11 @@ interface UserProfile {
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
-  login: (
-    email: string,
-    password: string,
-  ) => Promise<{ success: boolean; error?: string }>;
-  signup: (
-    email: string,
-    password: string,
-    fullName: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  updateProfile: (
-    profileData: Partial<UserProfile>,
-  ) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (profileData: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
   loading: boolean;
 }
@@ -59,13 +50,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuthStatus();
-    
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        // Check for mock user first (for testing)
+        const mockUser = localStorage.getItem("mock_user");
+        if (mockUser && mounted) {
+          try {
+            const userData = JSON.parse(mockUser);
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              full_name: userData.full_name,
+            });
+
+            const mockProfile = mockProfiles.find(p => p.user_id === userData.id);
+            if (mockProfile) {
+              setProfile(mockProfile);
+            }
+            
+            if (mounted) setLoading(false);
+            return;
+          } catch (e) {
+            localStorage.removeItem("mock_user");
+          }
+        }
+
+        // Check Supabase session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && mounted) {
+          const supabaseUser = session.user;
+          setUser({
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
+          });
+          await fetchUserProfile(supabaseUser.id);
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         if (session?.user) {
-          // Handle Supabase auth user
           const supabaseUser = session.user;
           setUser({
             id: supabaseUser.id,
@@ -74,104 +111,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
           await fetchUserProfile(supabaseUser.id);
         } else {
-          // Check for custom auth
-          await checkAuthStatus();
+          setUser(null);
+          setProfile(null);
         }
+        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      // Check Supabase session first
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const supabaseUser = session.user;
-        setUser({
-          id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
-        });
-        await fetchUserProfile(supabaseUser.id);
-        setLoading(false);
-        return;
-      }
-
-      // Check custom auth session
-      const sessionToken = localStorage.getItem("session_token");
-      if (!sessionToken) {
-        setLoading(false);
-        return;
-      }
-
-      // Check for mock user first
-      const mockUser = localStorage.getItem("mock_user");
-      if (mockUser) {
-        try {
-          const userData = JSON.parse(mockUser);
-          setUser({
-            id: userData.id,
-            email: userData.email,
-            full_name: userData.full_name,
-          });
-
-          // Set mock profile
-          const mockProfile = mockProfiles.find(
-            (p) => p.user_id === userData.id,
-          );
-          if (mockProfile) {
-            setProfile(mockProfile);
-          }
-
-          setLoading(false);
-          return;
-        } catch (e) {
-          localStorage.removeItem("mock_user");
-        }
-      }
-
-      // Try custom auth session verification
-      try {
-        const { data, error } = await supabase
-          .from("user_sessions")
-          .select(
-            `
-            user_id,
-            expires_at,
-            auth_users(id, email, full_name)
-          `,
-          )
-          .eq("session_token", sessionToken)
-          .gt("expires_at", new Date().toISOString())
-          .single();
-
-        if (!error && data) {
-          const userData = data.auth_users as any;
-          setUser({
-            id: userData.id,
-            email: userData.email,
-            full_name: userData.full_name,
-          });
-
-          await fetchUserProfile(userData.id);
-          setLoading(false);
-          return;
-        }
-      } catch (supabaseError) {
-        console.log("Custom auth session check failed:", supabaseError);
-      }
-
-      // Clean up invalid session
-      localStorage.removeItem("session_token");
-      localStorage.removeItem("mock_user");
-    } catch (error) {
-      console.error("Auth check error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -242,52 +193,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!supabaseError && supabaseData.user) {
-        // Supabase auth success - state will be updated by onAuthStateChange
         return { success: true };
       }
 
-      // Fallback to custom auth
+      // Fallback to mock authentication for testing
       const passwordHash = btoa(password);
-
-      // Try custom auth database first
-      try {
-        const { data: userData, error } = await supabase
-          .from("auth_users")
-          .select("*")
-          .eq("email", email)
-          .eq("password_hash", passwordHash)
-          .single();
-
-        if (!error && userData) {
-          // Create session
-          const sessionToken = btoa(userData.id + ":" + Date.now());
-          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-          await supabase.from("user_sessions").insert({
-            user_id: userData.id,
-            session_token: sessionToken,
-            expires_at: expiresAt.toISOString(),
-          });
-
-          localStorage.setItem("session_token", sessionToken);
-
-          setUser({
-            id: userData.id,
-            email: userData.email,
-            full_name: userData.full_name,
-          });
-
-          await fetchUserProfile(userData.id);
-          return { success: true };
-        }
-      } catch (customAuthError) {
-        console.log("Custom auth failed, trying mock auth:", customAuthError);
-      }
-
-      // Fallback to mock authentication
       const mockUser = mockUsers.find(
         (u) => u.email === email && u.password_hash === passwordHash,
       );
+      
       if (mockUser) {
         const sessionToken = btoa(mockUser.id + ":" + Date.now());
         localStorage.setItem("session_token", sessionToken);
@@ -315,7 +229,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, fullName: string) => {
     try {
-      // Try Supabase auth first
       const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
         email,
         password,
@@ -328,40 +241,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!supabaseError && supabaseData.user) {
-        // Supabase auth success
         return { success: true };
       }
 
-      // Check if user exists in custom auth
-      const { data: existingUser } = await supabase
-        .from("auth_users")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (existingUser) {
-        return { success: false, error: "Email already exists" };
-      }
-
-      // Create custom auth user
-      const passwordHash = btoa(password);
-
-      const { data: newUser, error } = await supabase
-        .from("auth_users")
-        .insert({
-          email,
-          password_hash: passwordHash,
-          full_name: fullName,
-        })
-        .select()
-        .single();
-
-      if (!error && newUser) {
-        // Auto-login after signup
-        return await login(email, password);
-      }
-
-      return { success: false, error: "Signup failed" };
+      return { success: false, error: supabaseError?.message || "Signup failed" };
     } catch (error) {
       return { success: false, error: "Signup failed" };
     }
@@ -369,22 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      // Sign out from Supabase
       await supabase.auth.signOut();
-
-      // Clean up custom auth session
-      const sessionToken = localStorage.getItem("session_token");
-      if (sessionToken) {
-        try {
-          await supabase
-            .from("user_sessions")
-            .delete()
-            .eq("session_token", sessionToken);
-        } catch (error) {
-          console.log("Session cleanup failed:", error);
-        }
-      }
-
       localStorage.removeItem("session_token");
       localStorage.removeItem("mock_user");
       setUser(null);
@@ -405,27 +273,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true };
       }
 
-      // Try database update
-      try {
-        const { error } = await supabase
-          .from("user_profiles")
-          .update({
-            ...profileData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", user.id);
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
 
-        if (error) {
-          return { success: false, error: "Profile update failed" };
-        }
-
-        await fetchUserProfile(user.id);
-        return { success: true };
-      } catch (supabaseError) {
-        console.log("Profile update failed:", supabaseError);
-        setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
-        return { success: true };
+      if (error) {
+        return { success: false, error: "Profile update failed" };
       }
+
+      await fetchUserProfile(user.id);
+      return { success: true };
     } catch (error) {
       return { success: false, error: "Profile update failed" };
     }

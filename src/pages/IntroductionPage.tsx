@@ -33,7 +33,7 @@ const IntroductionPage: React.FC = () => {
     },
     {
       name: "Priya Patel",
-      role: "ML Engineer",
+      role: "ML Engineer", 
       email: "priya@stressguard.ai",
       linkedin: "https://linkedin.com/in/priya-patel",
       photo: "https://images.unsplash.com/photo-1494790108755-2616b332166c?w=150&h=150&fit=crop&crop=face",
@@ -41,7 +41,7 @@ const IntroductionPage: React.FC = () => {
     {
       name: "Rahul Kumar",
       role: "Full Stack Developer",
-      email: "rahul@stressguard.ai",
+      email: "rahul@stressguard.ai", 
       linkedin: "https://linkedin.com/in/rahul-kumar",
       photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     },
@@ -49,7 +49,7 @@ const IntroductionPage: React.FC = () => {
       name: "Sneha Reddy",
       role: "UI/UX Designer",
       email: "sneha@stressguard.ai",
-      linkedin: "https://linkedin.com/in/sneha-reddy",
+      linkedin: "https://linkedin.com/in/sneha-reddy", 
       photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     },
   ];
@@ -63,14 +63,14 @@ const IntroductionPage: React.FC = () => {
     },
     {
       icon: <Heart className="w-8 h-8 text-red-400" />,
-      title: "Multi-Modal Monitoring",
+      title: "Multi-Modal Monitoring", 
       description: "Combines heart rate, skin conductance, temperature, and facial expression analysis for comprehensive stress detection.",
       gradient: "from-red-500 to-pink-500"
     },
     {
       icon: <Shield className="w-8 h-8 text-green-400" />,
       title: "Privacy First",
-      description: "All data processing happens locally with end-to-end encryption. Your health data remains completely private.",
+      description: "All data processing happens locally with end-to-end encryption. Your health data remains completely private.", 
       gradient: "from-green-500 to-emerald-500"
     },
     {
