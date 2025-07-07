@@ -113,6 +113,8 @@ const CameraPage: React.FC = () => {
 };
 
 function App() {
+  console.log("🚀 App component rendered");
+
   return (
     <ThemeProvider>
       <AuthProvider>
