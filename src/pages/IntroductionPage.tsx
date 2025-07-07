@@ -293,7 +293,10 @@ const IntroductionPage: React.FC = () => {
 
             {showDebugger && (
               <div className="space-y-6">
-                <DatabaseDebugger />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <AuthDebugger />
+                  <DatabaseDebugger />
+                </div>
                 <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <h3 className="text-white text-lg font-semibold mb-4">
