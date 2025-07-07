@@ -287,25 +287,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    console.log("🔄 Attempting login for:", email);
+
     try {
-      // Try Supabase auth first
-      const { data: supabaseData, error: supabaseError } =
-        await supabase.auth.signInWithPassword({
+      // Try Supabase auth first with timeout
+      try {
+        console.log("🔄 Trying Supabase authentication...");
+        const loginPromise = supabase.auth.signInWithPassword({
           email,
           password,
         });
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Login timeout")), 10000),
+        );
 
-      if (!supabaseError && supabaseData.user) {
-        return { success: true };
+        const { data: supabaseData, error: supabaseError } =
+          (await Promise.race([loginPromise, timeoutPromise])) as any;
+
+        if (!supabaseError && supabaseData.user) {
+          console.log("✅ Supabase login successful");
+          return { success: true };
+        } else if (supabaseError) {
+          console.warn("⚠️ Supabase login failed:", supabaseError.message);
+        }
+      } catch (error) {
+        console.warn("⚠️ Supabase login error:", error.message);
       }
 
       // Fallback to mock authentication for testing
+      console.log("🔄 Trying mock authentication...");
       const passwordHash = btoa(password);
       const mockUser = mockUsers.find(
         (u) => u.email === email && u.password_hash === passwordHash,
       );
 
       if (mockUser) {
+        console.log("✅ Mock authentication successful:", mockUser.email);
+
         const sessionToken = btoa(mockUser.id + ":" + Date.now());
         localStorage.setItem("session_token", sessionToken);
         localStorage.setItem("mock_user", JSON.stringify(mockUser));
@@ -319,13 +337,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const mockProfile = mockProfiles.find((p) => p.user_id === mockUser.id);
         if (mockProfile) {
           setProfile(mockProfile);
+          console.log("✅ Mock profile loaded");
         }
 
         return { success: true };
       }
 
+      console.log("❌ No matching credentials found");
       return { success: false, error: "Invalid credentials" };
     } catch (error) {
+      console.error("❌ Login failed:", error);
       return { success: false, error: "Login failed" };
     }
   };
