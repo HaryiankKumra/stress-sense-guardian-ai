@@ -436,10 +436,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if using mock authentication
       const mockUser = localStorage.getItem("mock_user");
       if (mockUser) {
+        console.log("📝 Updating mock profile...");
         setProfile((prev) => (prev ? { ...prev, ...profileData } : null));
         return { success: true };
       }
 
+      console.log("🔄 Updating profile in database...");
       const { error } = await supabase
         .from("user_profiles")
         .update({
@@ -449,13 +451,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq("user_id", user.id);
 
       if (error) {
-        return { success: false, error: "Profile update failed" };
+        console.error("❌ Profile update error:", error);
+        return {
+          success: false,
+          error: error.message || error.details || "Profile update failed",
+        };
       }
 
+      console.log("✅ Profile updated successfully");
       await fetchUserProfile(user.id);
       return { success: true };
     } catch (error) {
-      return { success: false, error: "Profile update failed" };
+      console.error("❌ Profile update exception:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Profile update failed";
+      return { success: false, error: errorMessage };
     }
   };
 
