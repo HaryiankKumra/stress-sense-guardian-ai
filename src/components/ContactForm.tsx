@@ -24,17 +24,22 @@ export default function ContactForm() {
     setStatus("");
 
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("https://unwxteyecpgcvrhqqbgz.supabase.co/functions/v1/contact-form", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVud3h0ZXllY3BnY3ZyaHFxYmd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MzA0OTUsImV4cCI6MjA2NjEwNjQ5NX0.UihP9261B2Ibq-ejmjwH-Dahi9xp-RddEQD8fI2FRQ4`
+        },
         body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         setStatus("Message sent successfully!");
         setFormData({ fullName: "", email: "", subject: "", message: "" });
       } else {
-        setStatus("Something went wrong. Please try again.");
+        setStatus(data.error || "Something went wrong. Please try again.");
       }
     } catch (error) {
       console.error(error);

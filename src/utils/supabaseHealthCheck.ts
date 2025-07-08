@@ -9,17 +9,17 @@ interface HealthCheckResult {
 }
 
 const requiredTables = [
-  "auth_users",
   "user_profiles",
-  "health_records",
-  "stress_detections",
-  "biometric_readings",
+  "health_records", 
   "chat_history",
   "sensor_data",
   "stress_predictions",
   "notifications",
-  "device_registrations",
-  "contact_messages", // ✅ added!
+  "contact_messages",
+  "biometric_data_enhanced",
+  "daily_metrics",
+  "device_configs",
+  "stress_events",
 ];
 
 export const performSupabaseHealthCheck =
@@ -36,7 +36,7 @@ export const performSupabaseHealthCheck =
       // Test basic connection
       console.log("🔍 Testing Supabase connection...");
       const { data: connectionTest, error: connectionError } = await supabase
-        .from("auth_users")
+        .from("user_profiles")
         .select("count")
         .limit(1);
 
@@ -45,7 +45,7 @@ export const performSupabaseHealthCheck =
 
         if (
           connectionError.message.includes(
-            'relation "auth_users" does not exist',
+            'relation "user_profiles" does not exist',
           )
         ) {
           result.recommendations.push(
@@ -75,7 +75,7 @@ export const performSupabaseHealthCheck =
       for (const table of requiredTables) {
         try {
           const { error: tableError } = await supabase
-            .from(table)
+            .from(table as any)
             .select("count")
             .limit(1);
 
@@ -106,11 +106,11 @@ export const performSupabaseHealthCheck =
       // Check for sample data
       try {
         const { data: userData, error: userError } = await supabase
-          .from("auth_users")
+          .from("user_profiles")
           .select("count");
 
         if (!userError && userData && userData.length === 0) {
-          result.warnings.push("No sample users found in database");
+          result.warnings.push("No user profiles found in database");
           result.recommendations.push(
             "Initialize the database with sample data for testing.",
           );
@@ -119,17 +119,9 @@ export const performSupabaseHealthCheck =
         result.warnings.push("Could not check for sample data");
       }
 
-      // Check RLS policies
-      try {
-        const { data: rlsData, error: rlsError } =
-          await supabase.rpc("check_rls_enabled");
-
-        if (rlsError) {
-          result.warnings.push("Could not verify Row Level Security status");
-        }
-      } catch (error) {
-        // RLS check is optional
-      }
+      // Skip RLS check as the function doesn't exist
+      result.warnings.push("Row Level Security status check skipped");
+      result.recommendations.push("Verify RLS policies are properly configured for your tables.");
 
       if (result.errors.length === 0 && result.warnings.length === 0) {
         console.log("🎉 Supabase health check passed completely!");
@@ -158,7 +150,8 @@ export const autoFixCommonIssues = async (): Promise<{
     // Check if we can create a simple test record
     const testData = {
       id: "health-check-test",
-      user_id: "test-user",
+      heart_rate: 72,
+      temperature: 36.5,
       timestamp: new Date().toISOString(),
     };
 
@@ -204,7 +197,7 @@ export const getSupabaseStatus = async () => {
 export const quickConnectionTest = async (): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from("auth_users")
+      .from("user_profiles")
       .select("count")
       .limit(1);
 

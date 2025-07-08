@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       auth_users: {
@@ -164,6 +169,96 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_metrics: {
+        Row: {
+          avg_heart_rate: number | null
+          avg_stress_level: number | null
+          created_at: string | null
+          date: string
+          exercise_minutes: number | null
+          id: string
+          max_heart_rate: number | null
+          max_stress_level: number | null
+          min_heart_rate: number | null
+          min_stress_level: number | null
+          mood_rating: number | null
+          notes: string | null
+          sleep_hours: number | null
+          user_id: string | null
+          water_intake: number | null
+        }
+        Insert: {
+          avg_heart_rate?: number | null
+          avg_stress_level?: number | null
+          created_at?: string | null
+          date: string
+          exercise_minutes?: number | null
+          id?: string
+          max_heart_rate?: number | null
+          max_stress_level?: number | null
+          min_heart_rate?: number | null
+          min_stress_level?: number | null
+          mood_rating?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          user_id?: string | null
+          water_intake?: number | null
+        }
+        Update: {
+          avg_heart_rate?: number | null
+          avg_stress_level?: number | null
+          created_at?: string | null
+          date?: string
+          exercise_minutes?: number | null
+          id?: string
+          max_heart_rate?: number | null
+          max_stress_level?: number | null
+          min_heart_rate?: number | null
+          min_stress_level?: number | null
+          mood_rating?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          user_id?: string | null
+          water_intake?: number | null
+        }
+        Relationships: []
+      }
+      device_configs: {
+        Row: {
+          configuration: Json | null
+          created_at: string | null
+          device_id: string
+          device_name: string | null
+          device_type: string | null
+          id: string
+          is_active: boolean | null
+          last_seen: string | null
+          user_id: string | null
+        }
+        Insert: {
+          configuration?: Json | null
+          created_at?: string | null
+          device_id: string
+          device_name?: string | null
+          device_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          configuration?: Json | null
+          created_at?: string | null
+          device_id?: string
+          device_name?: string | null
+          device_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       health_records: {
         Row: {
           condition: string
@@ -236,6 +331,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          message: string
+          priority: string | null
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          priority?: string | null
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          priority?: string | null
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -287,6 +418,51 @@ export type Database = {
           id?: string
           temperature?: number
           timestamp?: string
+        }
+        Relationships: []
+      }
+      stress_events: {
+        Row: {
+          avg_stress_level: number | null
+          coping_strategy: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string
+          notes: string | null
+          outcome_rating: number | null
+          peak_stress_level: number | null
+          start_time: string
+          trigger_category: string | null
+          trigger_description: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avg_stress_level?: number | null
+          coping_strategy?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          outcome_rating?: number | null
+          peak_stress_level?: number | null
+          start_time: string
+          trigger_category?: string | null
+          trigger_description?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avg_stress_level?: number | null
+          coping_strategy?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          outcome_rating?: number | null
+          peak_stress_level?: number | null
+          start_time?: string
+          trigger_category?: string | null
+          trigger_description?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -348,6 +524,36 @@ export type Database = {
           id?: string
           priority?: string | null
           text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_api_keys: {
+        Row: {
+          api_key_encrypted: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          provider: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -477,21 +683,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -509,14 +719,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -532,14 +744,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -555,14 +769,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -570,14 +786,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

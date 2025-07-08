@@ -886,7 +886,7 @@ const IntroductionPage = () => {
         </div>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         @keyframes heartbeat {
           0%,
           100% {

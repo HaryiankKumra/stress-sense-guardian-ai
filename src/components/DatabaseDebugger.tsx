@@ -13,12 +13,7 @@ import {
   Trash2,
   Info,
 } from "lucide-react";
-import {
-  initializeDatabaseWithSampleData,
-  checkDatabaseConnection,
-  clearAllData,
-  getSampleCredentials,
-} from "@/utils/databaseInitializer";
+// Database initializer removed - functionality simplified
 import {
   performSupabaseHealthCheck,
   autoFixCommonIssues,
@@ -76,13 +71,11 @@ const DatabaseDebugger: React.FC = () => {
 
         // Get user count if connected
         try {
-          const connection = await checkDatabaseConnection();
-          if (connection.connected && connection.data) {
-            setStatus((prev) => ({
-              ...prev,
-              userCount: connection.data.length,
-            }));
-          }
+          // Use supabase directly to get user count
+          setStatus((prev) => ({
+            ...prev,
+            userCount: 0, // Placeholder - could implement user count check
+          }));
         } catch (error) {
           addLog("Could not get user count");
         }
@@ -104,55 +97,13 @@ const DatabaseDebugger: React.FC = () => {
 
   const initializeDatabase = async () => {
     setLoading(true);
-    addLog("Initializing database with sample data...");
-
-    try {
-      const result = await initializeDatabaseWithSampleData({ force: true });
-
-      if (result.success) {
-        addLog(`🎉 Database initialized successfully!`);
-        addLog(`Users created: ${result.usersCreated}`);
-        addLog(`Health records: ${result.healthRecordsCreated}`);
-        addLog(`Stress data: ${result.stressDataCreated}`);
-        await checkStatus();
-      } else {
-        addLog(`❌ Initialization failed: ${result.error}`);
-        if (result.usingMockData) {
-          addLog("📝 Using mock data for authentication");
-        }
-      }
-    } catch (error) {
-      addLog(`💥 Initialization error: ${error}`);
-    }
-
+    addLog("Database initialization feature removed - use Supabase dashboard to manage data");
     setLoading(false);
   };
 
   const clearDatabase = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to clear all data? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
     setLoading(true);
-    addLog("Clearing all database data...");
-
-    try {
-      const result = await clearAllData();
-
-      if (result.success) {
-        addLog("🗑️ All data cleared successfully");
-        await checkStatus();
-      } else {
-        addLog(`❌ Clear failed: ${result.error}`);
-      }
-    } catch (error) {
-      addLog(`💥 Clear error: ${error}`);
-    }
-
+    addLog("Database clear feature removed - use Supabase dashboard to manage data");
     setLoading(false);
   };
 
@@ -183,7 +134,10 @@ const DatabaseDebugger: React.FC = () => {
     checkStatus();
   }, []);
 
-  const credentials = getSampleCredentials();
+  const credentials = [
+    { name: "Admin User", email: "admin@stressguard.ai", password: "admin123" },
+    { name: "Test User", email: "test@example.com", password: "test123" },
+  ];
 
   return (
     <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">

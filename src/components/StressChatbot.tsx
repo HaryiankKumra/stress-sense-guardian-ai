@@ -56,7 +56,7 @@ const StressChatbot: React.FC = () => {
         setTimeout(() => reject(new Error("Request timeout")), 8000),
       );
 
-      const apiPromise = supabase.functions.invoke("stress-chatbot", {
+      const apiPromise = supabase.functions.invoke("chat-completion", {
         body: { message: inputValue },
       });
 

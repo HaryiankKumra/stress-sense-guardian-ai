@@ -154,49 +154,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("🔄 Fetching user profile for:", userId);
 
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (error && error.code === "PGRST116") {
-        // Profile doesn't exist, create one
-        console.log("📝 Creating new profile for user:", userId);
-        const newProfile = {
-          user_id: userId,
-          stress_threshold_low: 30,
-          stress_threshold_medium: 60,
-          stress_threshold_high: 80,
-          sleep_target_hours: 8,
-          water_intake_target: 2000,
-        };
-
-        const { data: createdProfile, error: createError } = await supabase
+        const { data, error } = await supabase
           .from("user_profiles")
-          .insert([newProfile])
-          .select()
-          .single();
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-        if (createError) {
-          console.error("❌ Failed to create profile:", createError);
-          throw createError;
+        if (error) {
+          console.error("❌ Profile fetch error:", error);
+          throw error;
         }
 
-        setProfile(createdProfile);
-        console.log("✅ Profile created successfully");
-        return;
-      }
+        if (!data) {
+          // Profile doesn't exist, create one
+          console.log("📝 Creating new profile for user:", userId);
+          const newProfile = {
+            user_id: userId,
+            stress_threshold_low: 30,
+            stress_threshold_medium: 60,
+            stress_threshold_high: 80,
+            sleep_target_hours: 8,
+            water_intake_target: 2000,
+          };
 
-      if (error) {
-        console.error("❌ Profile fetch error:", error);
-        throw error;
-      }
+          const { data: createdProfile, error: createError } = await supabase
+            .from("user_profiles")
+            .insert([newProfile])
+            .select()
+            .single();
 
-      if (data) {
-        setProfile(data);
-        console.log("✅ Profile loaded successfully");
-      }
+          if (createError) {
+            console.error("❌ Failed to create profile:", createError);
+            throw createError;
+          }
+
+          setProfile(createdProfile);
+          console.log("✅ Profile created successfully");
+          return;
+        }
+
+        if (data) {
+          setProfile(data);
+          console.log("✅ Profile loaded successfully");
+        }
     } catch (error) {
       console.error("❌ Failed to fetch/create user profile:", error);
       logError("Failed to fetch user profile", error);
@@ -247,7 +247,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
